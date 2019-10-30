@@ -1,0 +1,5 @@
+name: formal-bitcoin
+depend:
+  standard-library
+  formal-prelude
+include: .
