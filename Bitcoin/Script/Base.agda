@@ -11,72 +11,74 @@ open import Data.Fin     using (Fin) renaming (zero to FZ; suc to FS)
 open import Data.Integer using (ℤ; +_)
 
 open import Bitcoin.BasicTypes
+open import Bitcoin.Crypto
 
---------------------------------------------------------------------------------------
--- Bitcoin scripts.
+data ScriptContext : Set where
+  Ctx : ℕ → ScriptContext
+
+ctxToℕ : ScriptContext → ℕ
+ctxToℕ (Ctx n) = n
+
+data ScriptType : Set where
+  `Bool `ℤ : ScriptType
 
 variable
-  n n′ : ℕ
-  A : Set
+  ctx ctx′ : ScriptContext
+  ty ty′ : ScriptType
 
-record KeyPair : Set where
-  field
-    pub : ℤ
-    sec : ℤ
-open KeyPair public
-
-data Script :  ℕ  -- size of the environment/context
-            → Set -- result type
+data Script : ScriptContext  -- size of the environment/context
+            → ScriptType     -- result type
             → Set where
 
   -- Variables
-  var  : Fin n → Script n ℤ
+  var  : Fin n → Script (Ctx n) `ℤ
 
   -- Arithmetic/boolean operations
-  `    : ℤ → Script n ℤ
-  _`+_ : Script n ℤ → Script n ℤ → Script n ℤ
-  _`-_ : Script n ℤ → Script n ℤ → Script n ℤ
-  _`=_ : Script n ℤ → Script n ℤ → Script n Bool
-  _`<_ : Script n ℤ → Script n ℤ → Script n Bool
+  `    : ℤ → Script ctx `ℤ
+  _`+_ : Script ctx `ℤ → Script ctx `ℤ → Script ctx `ℤ
+  _`-_ : Script ctx `ℤ → Script ctx `ℤ → Script ctx `ℤ
+  _`=_ : Script ctx `ℤ → Script ctx `ℤ → Script ctx `Bool
+  _`<_ : Script ctx `ℤ → Script ctx `ℤ → Script ctx `Bool
 
   -- Conditional statement
-  `if_then_else_ : Script n Bool → Script n A → Script n A → Script n A
+  `if_then_else_ : Script ctx `Bool → Script ctx ty → Script ctx ty → Script ctx ty
 
   -- Size (do not support for now, needs floats, logarithms, etc...)
-  -- ∣_∣ : Script n ℤ → Script n ℤ
+  -- ∣_∣ : Script n `ℤ → Script n `ℤ
 
   -- Hashing
-  hash : Script n ℤ → Script n ℤ
+  hash : Script ctx `ℤ → Script ctx `ℤ
 
   -- Signature verification
-  versig : List KeyPair → List (Fin n) → Script n Bool
+  versig : List KeyPair → List (Fin n) → Script (Ctx n) `Bool
 
   -- Temporal constraints
-  absAfter_⦂_ : Time → Script n A → Script n A
-  relAfter_⦂_ : Time → Script n A → Script n A
+  absAfter_⇒_ : Time → Script ctx ty → Script ctx ty
+  relAfter_⇒_ : Time → Script ctx ty → Script ctx ty
 
-∃Script = ∃[ n ] ∃[ A ] Script n A
+∃Script = ∃[ ctx ] ∃[ ty ] Script ctx ty
 
-`false : Script n Bool
+`false : Script ctx `Bool
 `false = ` (+ 1) `= ` (+ 0)
 
-`true : Script n Bool
+`true : Script ctx `Bool
 `true = ` (+ 1) `= ` (+ 1)
 
-_`∧_ : Script n Bool → Script n Bool → Script n Bool
+_`∧_ : Script ctx `Bool → Script ctx `Bool → Script ctx `Bool
 e `∧ e′ = `if e then e′ else `false
 
-_`∨_ : Script n Bool → Script n Bool → Script n Bool
+_`∨_ : Script ctx `Bool → Script ctx `Bool → Script ctx `Bool
 e `∨ e′ = `if e then `true else e′
 
-`not : Script n Bool → Script n Bool
+`not : Script ctx `Bool → Script ctx `Bool
 `not e = `if e then `false else `true
 
-data BitcoinScript (n : ℕ) : Set where
-  ƛ_ : Script n Bool → BitcoinScript n
+data BitcoinScript (ctx : ScriptContext) : Set where
+  ƛ_ : Script ctx `Bool → BitcoinScript ctx
 
-∃BitcoinScript = ∃[ n ] BitcoinScript n
+∃BitcoinScript = ∃[ ctx ] BitcoinScript ctx
 
+-- operators' precedence
 infixr 6 _`∧_
 infixr 5 _`∨_
 infix  4 _`=_
@@ -84,9 +86,9 @@ infix  4 _`<_
 infix  3 _`+_
 infix  3 _`-_
 infix  2 `if_then_else_
-infix  2 absAfter_⦂_
-infix  2 relAfter_⦂_
+infix  2 absAfter_⇒_
+infix  2 relAfter_⇒_
 infix  1 ƛ_
 
-_ : BitcoinScript 2
+_ : BitcoinScript (Ctx 2)
 _ = ƛ versig [] [ FZ ] `∧ (hash (var (FS FZ)) `= hash (var FZ))

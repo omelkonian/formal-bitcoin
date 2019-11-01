@@ -1,7 +1,8 @@
 default: site
 
 site:
-	agda --html --html-dir=docs Bitcoin/Main.agda && cp docs/Bitcoin.Main.html docs/index.html
+	agda --html --html-dir=docs Bitcoin/Main.agda --css=../css/Agda.css \
+	  && cp docs/Bitcoin.Main.html docs/index.html
 
 clean:
 	rm -rf docs/
@@ -31,5 +32,7 @@ $(HOME)/formal-prelude-master/Everything.agda:
 
 $(HOME)/.agda/libraries:
 	mkdir -p $(HOME)/.agda
-	echo "$(HOME)/agda-stdlib-$(AGDA_STDLIB_VERSION)/standard-library.agda-lib" >> $(HOME)/.agda/libraries
-	echo "$(HOME)/formal-prelude-master/formal-prelude.agda-lib"                >> $(HOME)/.agda/libraries
+	echo "$(HOME)/agda-stdlib-$(AGDA_STDLIB_VERSION)/standard-library.agda-lib" \
+		>> $(HOME)/.agda/libraries
+	echo "$(HOME)/formal-prelude-master/formal-prelude.agda-lib" \
+		>> $(HOME)/.agda/libraries
