@@ -40,18 +40,18 @@
 
 /* Fonts */
 @font-face {
-  font-family: mononoki;
-  src: url(/css/mononoki.woff2) format('woff2'),
-       url(/css/mononoki.woff) format('woff');
+  font-family: 'mononoki';
+  src: url('mononoki.woff2') format('woff2'),
+       url('mononoki.woff') format('woff');
 }
 @font-face {
   font-family: 'DejaVu Sans Mono';
-  src: url('/css/DejaVuSansMono.woff2') format('woff2'),
-       url('/css/DejaVuSansMono.woff') format('woff');
+  src: url('DejaVuSansMono.woff2') format('woff2'),
+       url('DejaVuSansMono.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
 pre.Agda {
-  font-family: 'DejaVu Sans Mono';
+  font-family: 'mononoki';
   font-size: .85em;
 }

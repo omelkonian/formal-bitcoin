@@ -21,7 +21,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Bitcoin.Crypto
 open import Bitcoin.Script.Base
 
-import Data.Set' as SET
+import Prelude.Set' as SET
 
 -- Sets of public-private key pairs.
 _≟ₖ_ : Decidable {A = KeyPair} _≡_

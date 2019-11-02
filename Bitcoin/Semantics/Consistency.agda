@@ -17,7 +17,7 @@ open import Data.List.Membership.Propositional using (_∈_)
 open import Relation.Nullary                      using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
-open import Utilities.Lists using (indices)
+open import Prelude.Lists using (indices)
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Script.Base

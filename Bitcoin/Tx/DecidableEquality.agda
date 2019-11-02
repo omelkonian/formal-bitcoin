@@ -23,7 +23,7 @@ open import Bitcoin.Script.Base
 open import Bitcoin.Script.DecidableEquality
 open import Bitcoin.Tx.Base
 
-import Data.Set' as SET
+import Prelude.Set' as SET
 
 -- Sets of transaction inputs
 _≟ᵢ_ : Decidable {A = TxInput} _≡_
