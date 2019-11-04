@@ -43,8 +43,8 @@ data Script : ScriptContext  -- size of the environment/context
   -- Conditional statement
   `if_then_else_ : Script ctx `Bool → Script ctx ty → Script ctx ty → Script ctx ty
 
-  -- Size (do not support for now, needs floats, logarithms, etc...)
-  -- ∣_∣ : Script n `ℤ → Script n `ℤ
+  -- Size
+  ∣_∣ : Script ctx `ℤ → Script ctx `ℤ
 
   -- Hashing
   hash : Script ctx `ℤ → Script ctx `ℤ

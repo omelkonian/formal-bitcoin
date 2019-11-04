@@ -3,16 +3,18 @@
 ------------------------------------------------------------------------
 module Bitcoin.Semantics.Script where
 
-open import Data.Empty    using (⊥-elim)
-open import Data.Unit     using (tt)
-open import Data.Bool     using (Bool; true; false; T; if_then_else_)
-open import Data.Nat      using (ℕ; suc; _≟_; _∸_; _≤_; s≤s; z≤n; _≥_; _≥?_)
-open import Data.Product  using (_×_; _,_; proj₁; proj₂; ∃-syntax)
-open import Data.Maybe    using (Maybe; just; nothing; fromMaybe)
-open import Data.Fin as F using (Fin)
-  renaming (zero to 0F; suc to FS)
-open import Data.Integer  using (ℤ; +_; _+_; _-_; _<_; _<?_)
-  renaming (_≟_ to _≟ℤ_)
+open import Data.Empty      using (⊥-elim)
+open import Data.Unit       using (tt)
+open import Data.Product    using (_×_; _,_; proj₁; proj₂; ∃-syntax)
+open import Data.Bool       using (Bool; true; false; T; if_then_else_)
+open import Data.Maybe      using (Maybe; just; nothing; fromMaybe)
+open import Data.Fin as F   using (Fin; 0F; 1F)
+open import Data.Nat        using (ℕ; suc; _≟_; _∸_; _≤_; s≤s; z≤n; _≥_; _≥?_)
+  renaming (_+_ to _+ℕ_)
+open import Data.Integer    using (ℤ; +_; _+_; _-_; _<_; _<?_)
+  renaming (_≟_ to _≟ℤ_; ∣_∣ to abs)
+open import Data.Bin        using (toℕ; fromℕ; ⌊log₂_⌋; toBits)
+open import Data.Nat.DivMod using (_/_)
 
 open import Data.List using (List; []; [_]; _∷_; map)
 
@@ -68,7 +70,10 @@ infix 8 ⟦_⟧′_
 ... | nothing | _        = nothing
 ... | _       | nothing  = nothing
 ⟦ `if b then e else e′ ⟧′ ρ = ⦇ if ⟦ b ⟧′ ρ then ⟦ e ⟧′ ρ else ⟦ e′ ⟧′ ρ ⦈
--- ⟦ ∣ e ∣                 ⟧′ ρ = {!!}
+⟦ ∣ e ∣                ⟧′ ρ = ⦇ size (⟦ e ⟧′ ρ) ⦈
+  where
+    size : ℤ → ℤ
+    size x = + (suc (⌊log₂ toBits (fromℕ (abs x)) ⌋) / 7) -- T0D0 ceiling (must involve floats...)
 ⟦ hash e               ⟧′ ρ = ⦇ HASH (⟦ e ⟧′ ρ) ⦈
 ⟦ versig k σ           ⟧′ ρ = just (ver⋆ k (map (lookup (context ρ)) σ) (tx ρ) (index ρ))
 ⟦ absAfter t ⇒ e       ⟧′ ρ with absLock (tx ρ) ≥? t
@@ -99,7 +104,7 @@ module Example2 where
                         ; outputs = os
                         ; absLock = t } in
          {σ≡ : ver⋆ [ k ] [ σ ] t 0F ≡ true}
-      → (t , 0F ⊨ (ƛ (versig [ k ] [ 0F ] `∧ (hash (var {n = 2} (FS 0F)) `= ` h)))) {pr = refl}
+      → (t , 0F ⊨ (ƛ (versig [ k ] [ 0F ] `∧ (hash (var {n = 2} 1F) `= ` h)))) {pr = refl}
   ex2 {h≡ = h≡} {σ≡ = σ≡} rewrite h≡ | σ≡ = taut
     where
       taut : ∀ {w} → T ⌊ w ≟ℤ w ⌋
