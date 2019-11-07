@@ -39,7 +39,7 @@ Set⟨TxInput⟩ = Set' where open SETᵢ
 
 -- Sets of transaction outputs
 _≟ₒ_ : Decidable {A = TxOutput ctx} _≡_
-_≟ₒ_ {ctx = ctx} x y with value x ≟ℕ value y | (ctx , validator x) SET∃ₛ.≣ (ctx , validator y)
+_≟ₒ_ {ctx = ctx} x y with value x ≟ℕ value y | (ctx , validator x) SETₛ.≣ (ctx , validator y)
 ... | no ¬p    | _        = no λ{refl → ¬p refl}
 ... | _        | no ¬p′   = no λ{refl → ¬p′ refl}
 ... | yes refl | yes refl = yes refl

@@ -79,12 +79,12 @@ data BitcoinScript (ctx : ScriptContext) : Set where
 ∃BitcoinScript = ∃[ ctx ] BitcoinScript ctx
 
 -- operators' precedence
-infixr 6 _`∧_
-infixr 5 _`∨_
+infix  5 _`+_
+infix  5 _`-_
 infix  4 _`=_
 infix  4 _`<_
-infix  3 _`+_
-infix  3 _`-_
+infixr 3 _`∨_
+infixr 3 _`∧_
 infix  2 `if_then_else_
 infix  2 absAfter_⇒_
 infix  2 relAfter_⇒_

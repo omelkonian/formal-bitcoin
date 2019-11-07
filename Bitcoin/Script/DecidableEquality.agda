@@ -268,7 +268,7 @@ _∃≟ₛ_ : Decidable {A = ∃BitcoinScript} _≡_
 ... | no ¬p    = no λ{refl → ¬p refl}
 ... | yes refl = yes refl
 
-module SET∃ₛ = SET {A = ∃BitcoinScript} _∃≟ₛ_
+module SETₛ = SET {A = ∃BitcoinScript} _∃≟ₛ_
 
 Set⟨∃BitcoinScript⟩ : Set
-Set⟨∃BitcoinScript⟩ = Set' where open SET∃ₛ
+Set⟨∃BitcoinScript⟩ = Set' where open SETₛ
