@@ -3,12 +3,17 @@
 ------------------------------------------------------------------------
 module Bitcoin.Script.Base where
 
+open import Function using (flip)
+
 open import Data.Bool    using (Bool)
-open import Data.Nat     using (ℕ)
-open import Data.Product using (∃-syntax)
-open import Data.List    using (List; []; [_])
-open import Data.Fin     using (Fin) renaming (zero to FZ; suc to FS)
+open import Data.Product using (∃-syntax; _,_)
+open import Data.List    using (List; []; [_]; _∷_; map; foldr)
+open import Data.Fin     using (Fin; 0F; 1F; inject≤)
 open import Data.Integer using (ℤ; +_)
+open import Data.Nat     using (ℕ; _≤_; _≤?_)
+open import Data.Nat.Properties using (≰⇒≥)
+
+open import Relation.Nullary using (yes; no)
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -91,4 +96,29 @@ infix  2 relAfter_⇒_
 infix  1 ƛ_
 
 _ : BitcoinScript (Ctx 2)
-_ = ƛ versig [] [ FZ ] `∧ (hash (var (FS FZ)) `= hash (var FZ))
+_ = ƛ versig [] [ 0F ] `∧ (hash (var 1F) `= hash (var 0F))
+
+-- Combining scripts
+mapFin : ∀ {n m} → n ≤ m → Script (Ctx n) ty → Script (Ctx m) ty
+mapFin n≤m (var x)                 = var (inject≤ x n≤m)
+mapFin n≤m (` x)                   = ` x
+mapFin n≤m (s `+ s₁)               = mapFin n≤m s `+ mapFin n≤m s₁
+mapFin n≤m (s `- s₁)               = mapFin n≤m s `- mapFin n≤m s₁
+mapFin n≤m (s `= s₁)               = mapFin n≤m s `= mapFin n≤m s₁
+mapFin n≤m (s `< s₁)               = mapFin n≤m s `< mapFin n≤m s₁
+mapFin n≤m (`if s then s₁ else s₂) = `if mapFin n≤m s then mapFin n≤m s₁ else mapFin n≤m s₂
+mapFin n≤m ∣ s ∣                   = ∣ mapFin n≤m s ∣
+mapFin n≤m (hash s)                = hash (mapFin n≤m s)
+mapFin n≤m (versig x x₁)           = versig x (map (flip inject≤ n≤m) x₁)
+mapFin n≤m (absAfter x ⇒ s)        = absAfter x ⇒ mapFin n≤m s
+mapFin n≤m (relAfter x ⇒ s)        = relAfter x ⇒ mapFin n≤m s
+
+⋁ : List (∃[ ctx ] Script ctx `Bool) → ∃[ ctx′ ] Script ctx′ `Bool
+⋁ [] = Ctx 0 , `false
+⋁ ((Ctx n , x) ∷ xs) with ⋁ xs
+... | Ctx m , y      with n ≤? m
+... | yes n≤m      = Ctx m , (mapFin n≤m x `∨ y)
+... | no  n≰m      = Ctx n , (x `∨ mapFin (≰⇒≥ n≰m) y)
+
+⋀ : List (Script ctx `Bool) → Script ctx `Bool
+⋀ = foldr _`∧_ `true
