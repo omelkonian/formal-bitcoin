@@ -7,7 +7,7 @@ module Bitcoin.Semantics.Tx where
 open import Data.Bool     using (Bool; true)
 open import Data.Nat      using (_∸_; _≥_)
 open import Data.Product  using (_×_; _,_; proj₁; proj₂; ∃-syntax)
-open import Data.List     using ([_])
+open import Data.List     using (List; [_])
 open import Data.Vec as V using ()
 open import Data.Fin as F using (Fin; toℕ)
   renaming (zero to 0F)
@@ -57,7 +57,7 @@ tx , i , t ↛ tx′ , j , t′ = ¬ ∃[ v ] (tx , i , t ↝[ v ] tx′ , j , t
 module Example4 where
 
   postulate
-    k k′ : KeyPair
+    ks ks′ : List KeyPair
     v₀ v₁ : Value
     t₀ t₁ abs₀ rel₀ : Time
 
@@ -66,26 +66,24 @@ module Example4 where
          { inputs = V.[]
          ; wit = V.[]
          ; relLock = V.[]
-         ; outputs = V.[ Ctx 1 , (record { value = v₀ ; validator = ƛ (versig [ k ] [ 0F ]) }) ]
+         ; outputs = V.[ Ctx 1 , (record { value = v₀ ; validator = ƛ (versig ks [ 0F ]) }) ]
          ; absLock = abs₀ }
 
   T₁ : Tx 1 1
-  {-# NON_TERMINATING #-}
-  T₁ = record
-         { inputs = V.[ record { txId = hashTx T₀ ; index = 0 } ]
-         ; wit = V.[ 1 , V.[ sig k T₁ 0F ] ]
-         ; relLock = V.[ rel₀ ]
-         ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig [ k′ ] [ 0F ]) }) ]
-         ; absLock = t₁ }
+  T₁ = sig⋆ V.[ ks ]
+            (record { inputs  = V.[ record { txId = hashTx T₀ ; index = 0 } ]
+                    ; wit     = wit⊥
+                    ; relLock = V.[ rel₀ ]
+                    ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig ks′ [ 0F ]) }) ]
+                    ; absLock = t₁ })
 
   T₁′ : Tx 1 1
-  {-# NON_TERMINATING #-}
-  T₁′ = record
-          { inputs = V.[ record { txId = hashTx T₀ ; index = 0 } ]
-          ; wit = V.[ 1 , V.[ sig k T₁′ 0F ] ]
-          ; relLock = V.[ 1 ]
-          ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig [ k′ ] [ 0F ]) }) ]
-          ; absLock = t₁ }
+  T₁′ = sig⋆ V.[ ks′ ]
+             (record { inputs = V.[ record { txId = hashTx T₀ ; index = 0 } ]
+                     ; wit     = wit⊥
+                     ; relLock = V.[ 1 ]
+                     ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig ks′ [ 0F ]) }) ]
+                     ; absLock = t₁ })
 
   T₀↝T₁ : T₀ , 0F , t₀ ↝[ v₀ ] T₁ , 0F , t₁
   T₀↝T₁ = {!!}
