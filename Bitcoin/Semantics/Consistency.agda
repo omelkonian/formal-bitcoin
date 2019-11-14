@@ -40,7 +40,7 @@ module _ where
 
   match : Blockchain → HashId → Set⟨TimedTx⟩
   match []                _   = ∅
-  match ((tx at t) ∷ txs) tx′ with hashTx (proj₂ (proj₂ tx)) ≟ℤ tx′
+  match ((tx at t) ∷ txs) tx′ with hashTx tx ≟ℤ tx′
   ... | no _  = match txs tx′
   ... | yes _ = singleton (tx at t)
               ∪ match txs tx′
@@ -49,7 +49,7 @@ module _ where
 open SETᵢ
 
 UTXOₜₓ : ∃Tx → Set⟨TxInput⟩
-UTXOₜₓ (_ , o , tx) = fromList (map (λ i → hashTx tx at i) (upTo o))
+UTXOₜₓ ∃tx@(_ , o , tx) = fromList (map (λ i → hashTx ∃tx at i) (upTo o))
 
 STXOₜₓ : ∃Tx → Set⟨TxInput⟩
 STXOₜₓ (_ , _ , tx) = fromList (toList (inputs tx))

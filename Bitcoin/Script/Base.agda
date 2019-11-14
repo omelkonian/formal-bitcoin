@@ -114,11 +114,17 @@ mapFin n≤m (absAfter x ⇒ s)        = absAfter x ⇒ mapFin n≤m s
 mapFin n≤m (relAfter x ⇒ s)        = relAfter x ⇒ mapFin n≤m s
 
 ⋁ : List (∃[ ctx ] Script ctx `Bool) → ∃[ ctx′ ] Script ctx′ `Bool
-⋁ [] = Ctx 0 , `false
-⋁ ((Ctx n , x) ∷ xs) with ⋁ xs
-... | Ctx m , y      with n ≤? m
-... | yes n≤m      = Ctx m , (mapFin n≤m x `∨ y)
-... | no  n≰m      = Ctx n , (x `∨ mapFin (≰⇒≥ n≰m) y)
+⋁ []       = Ctx 0 , `true
+⋁ (s ∷ []) = s
+⋁ ((Ctx n , x) ∷ xs)
+  with ⋁ xs
+... | Ctx m , y
+  with n ≤? m
+... | yes n≤m = _ , (mapFin n≤m x `∨ y)
+... | no  n≰m = _ , (x `∨ mapFin (≰⇒≥ n≰m) y)
 
 ⋀ : List (Script ctx `Bool) → Script ctx `Bool
-⋀ = foldr _`∧_ `true
+-- ⋀ = foldr _`∧_ `true
+⋀ []       = `true
+⋀ (s ∷ []) = s
+⋀ (s ∷ ss) = s `∧ ⋀ ss

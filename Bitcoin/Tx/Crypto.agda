@@ -15,8 +15,10 @@ open import Data.List     using (List; []; _∷_; map)
 open import Data.Vec as V using (Vec; _[_]≔_; lookup; allFin)
 
 open import Bitcoin.BasicTypes
-open import Bitcoin.Crypto
+open import Bitcoin.Crypto using (KeyPair; VER; HASH; SIG)
+-- open import Bitcoin.DummyHash.Tx using (HASH; SIG)
 open import Bitcoin.Tx.Base
+open import Bitcoin.Script.Base
 
 -- Remove witnesses (i.e. adhere to SegregatedWitness feature of Bitcoin)
 wit⊥ : ∀ {n} → Vec ∃Witness n
@@ -26,8 +28,8 @@ wit→⊥ : Tx i o → Tx i o
 wit→⊥ tx = record tx { wit = wit⊥ }
 
 -- Hash a transaction (i.e. get its identifier)
-hashTx : Tx i o → ℤ
-hashTx tx = HASH (wit→⊥ tx)
+hashTx : ∃Tx → ℤ
+hashTx (_ , _ , tx) = HASH (wit→⊥ tx)
 
 -- Sign a transaction
 μ : Tx i o → Fin i → Tx i o

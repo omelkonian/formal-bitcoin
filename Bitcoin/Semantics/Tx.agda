@@ -35,7 +35,7 @@ record _,_,_↝[_]_,_,_ (tx : Tx i o) (i : Fin o) (t : Time)
     ---------------------------------------------------------------
 
     input~output :
-      tx′ ‼ⁱ j ≡ record { txId = hashTx tx ; index = toℕ i }
+      tx′ ‼ⁱ j ≡ record { txId = hashTx (_ , _ , tx) ; index = toℕ i }
 
     scriptValidates :
       (tx′ , j ⊨ validator (proj₂ (tx ‼ᵒ i))) {pr = witness~validator}
@@ -71,7 +71,7 @@ module Example4 where
 
   T₁ : Tx 1 1
   T₁ = sig⋆ V.[ ks ]
-            (record { inputs  = V.[ record { txId = hashTx T₀ ; index = 0 } ]
+            (record { inputs  = V.[ record { txId = hashTx (_ , _ , T₀) ; index = 0 } ]
                     ; wit     = wit⊥
                     ; relLock = V.[ rel₀ ]
                     ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig ks′ [ 0F ]) }) ]
@@ -79,7 +79,7 @@ module Example4 where
 
   T₁′ : Tx 1 1
   T₁′ = sig⋆ V.[ ks′ ]
-             (record { inputs = V.[ record { txId = hashTx T₀ ; index = 0 } ]
+             (record { inputs = V.[ record { txId = hashTx (_ , _ , T₀) ; index = 0 } ]
                      ; wit     = wit⊥
                      ; relLock = V.[ 1 ]
                      ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig ks′ [ 0F ]) }) ]
