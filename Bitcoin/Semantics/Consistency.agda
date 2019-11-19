@@ -12,7 +12,9 @@ open import Data.Integer  using ()
 open import Data.Fin      using (Fin; fromℕ≤)
 open import Data.Vec as V using (tabulate; toList; sum)
 open import Data.List     using (List; []; _∷_; [_]; map; upTo)
-open import Data.List.Membership.Propositional using (_∈_)
+
+open import Data.List.Membership.Propositional            using (_∈_)
+open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
 
 open import Relation.Nullary                      using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_)
@@ -69,7 +71,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
     -- well-formedness conditions
 
     inputsUnique :
-      SETᵢ.Unique (toList (inputs tx))
+      Unique (toList (inputs tx))
 
     singleMatch : ∀ (i : Fin i) →
       let
