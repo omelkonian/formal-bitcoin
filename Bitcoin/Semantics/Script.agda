@@ -3,21 +3,21 @@
 ------------------------------------------------------------------------
 module Bitcoin.Semantics.Script where
 
-open import Data.Empty      using (⊥-elim)
-open import Data.Unit       using (tt)
-open import Data.Product    using (_×_; _,_; proj₁; proj₂; ∃-syntax)
-open import Data.Bool       using (Bool; true; false; T; if_then_else_)
-open import Data.Maybe      using (Maybe; just; nothing; fromMaybe)
-open import Data.Fin as F   using (Fin; 0F; 1F)
-open import Data.Nat        using (ℕ; suc; _≟_; _∸_; _≤_; s≤s; z≤n; _≥_; _≥?_)
+open import Data.Empty          using (⊥-elim)
+open import Data.Unit           using (tt)
+open import Data.Product        using (_×_; _,_; proj₁; proj₂; ∃-syntax)
+open import Data.Bool           using (Bool; true; false; T; if_then_else_)
+open import Data.Maybe          using (Maybe; just; nothing; fromMaybe)
+open import Data.Fin as F       using (Fin)
+open import Data.Fin.Patterns   using (0F; 1F)
+open import Data.Nat            using (ℕ; suc; _≟_; _∸_; _≤_; s≤s; z≤n; _≥_; _≥?_)
   renaming (_+_ to _+ℕ_)
-open import Data.Integer    using (ℤ; +_; _+_; _-_; _<_; _<?_)
+open import Data.Integer        using (ℤ; +_; _+_; _-_; _<_; _<?_)
   renaming (_≟_ to _≟ℤ_; ∣_∣ to abs)
-open import Data.Bin        using (toℕ; fromℕ; ⌊log₂_⌋; toBits)
-open import Data.Nat.DivMod using (_/_)
-
-open import Data.List using (List; []; [_]; _∷_; map)
-
+open import Data.Nat.Binary     using (fromℕ)
+  renaming (size to digits)
+open import Data.Nat.DivMod     using (_/_)
+open import Data.List           using (List; []; [_]; _∷_; map)
 open import Data.Vec as V       using (Vec; lookup; _[_]≔_)
 open import Data.Vec.Properties using (≡-dec)
 
@@ -73,7 +73,7 @@ infix 8 ⟦_⟧′_
 ⟦ ∣ e ∣                ⟧′ ρ = ⦇ size (⟦ e ⟧′ ρ) ⦈
   where
     size : ℤ → ℤ
-    size x = + (suc (⌊log₂ toBits (fromℕ (abs x)) ⌋) / 7) -- T0D0 ceiling (must involve floats...)
+    size x = + (suc (digits (fromℕ (abs x))) / 7) -- T0D0 ceiling (must involve floats...)
 ⟦ hash e               ⟧′ ρ = ⦇ HASH (⟦ e ⟧′ ρ) ⦈
 ⟦ versig k σ           ⟧′ ρ = just (ver⋆ k (map (lookup (context ρ)) σ) (tx ρ) (index ρ))
 ⟦ absAfter t ⇒ e       ⟧′ ρ with absLock (tx ρ) ≥? t

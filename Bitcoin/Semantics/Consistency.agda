@@ -9,7 +9,7 @@ open import Data.Product  using (_,_; proj₁; proj₂; ∃-syntax)
 open import Data.Nat      using (zero; suc; _≥_; _<_)
 open import Data.Integer  using ()
   renaming (_≟_ to _≟ℤ_)
-open import Data.Fin      using (Fin; fromℕ≤)
+open import Data.Fin      using (Fin; fromℕ<)
 open import Data.Vec as V using (tabulate; toList; sum)
 open import Data.List     using (List; []; _∷_; [_]; map; upTo)
 
@@ -100,7 +100,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       let
         (_ at oᵢ) = tx ‼ⁱ i
         (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-        oᵢ = fromℕ≤ {m = oᵢ} {n = o} (noOutOfBounds i)
+        oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
         vᵢ = value (proj₂ (Tᵢ ‼ᵒ oᵢ))
       in
         Tᵢ , oᵢ , tᵢ ↝[ vᵢ ] tx , i , t
@@ -110,7 +110,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       let
         ins  = tabulate λ i → let (_ at oᵢ) = tx ‼ⁱ i
                                   (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-                                  oᵢ = fromℕ≤ {m = oᵢ} {n = o} (noOutOfBounds i)
+                                  oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
                               in  value (proj₂ (Tᵢ ‼ᵒ oᵢ))
         outs = V.map (value ∘ proj₂) (outputs tx)
       in

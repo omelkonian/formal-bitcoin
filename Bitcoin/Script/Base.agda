@@ -5,12 +5,13 @@ module Bitcoin.Script.Base where
 
 open import Function using (flip)
 
-open import Data.Bool    using (Bool)
-open import Data.Product using (∃-syntax; _,_)
-open import Data.List    using (List; []; [_]; _∷_; map; foldr)
-open import Data.Fin     using (Fin; 0F; 1F; inject≤)
-open import Data.Integer using (ℤ; +_)
-open import Data.Nat     using (ℕ; _≤_; _≤?_)
+open import Data.Bool           using (Bool)
+open import Data.Product        using (∃-syntax; _,_)
+open import Data.List           using (List; []; [_]; _∷_; map; foldr)
+open import Data.Fin            using (Fin; inject≤)
+open import Data.Fin.Patterns   using (0F; 1F)
+open import Data.Integer        using (ℤ; +_)
+open import Data.Nat            using (ℕ; _≤_; _≤?_)
 open import Data.Nat.Properties using (≰⇒≥)
 
 open import Relation.Nullary using (yes; no)
