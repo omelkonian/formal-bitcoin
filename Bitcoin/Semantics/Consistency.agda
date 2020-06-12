@@ -35,7 +35,7 @@ Blockchain = List TimedTx -- in reverse chronological order, in contrast to the 
 variable txs txs′ : Blockchain
 
 module _ where
-  open SETₜₜₓ hiding (_∈_)
+  open SETₜₜₓ
 
   trans : Blockchain → Set⟨TimedTx⟩
   trans = fromList

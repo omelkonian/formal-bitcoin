@@ -37,6 +37,7 @@ _≟ᶜ_ : Decidable {A = ScriptContext} _≡_
 ... | yes refl = yes refl
 
 -- Sets of Bitcoin scripts
+-- postulate
 _≟∃ₛ_ : Decidable {A = ∃Script} _≡_
 (n , .`ℤ , var x) ≟∃ₛ (n′ , .`ℤ , var x₁)
   with n ≟ᶜ n′
@@ -227,11 +228,11 @@ _≟∃ₛ_ : Decidable {A = ∃Script} _≡_
 (n , ty , (absAfter x ⇒ s)) ≟∃ₛ (n′ , .`ℤ , hash s′) = no λ ()
 (n , ty , (absAfter x ⇒ s)) ≟∃ₛ (n′ , .`Bool , versig _ x₁) = no λ ()
 (n , ty , (absAfter x ⇒ s)) ≟∃ₛ (n′ , ty′ , (absAfter x₁ ⇒ s′))
-  with x ≟ℕ x₁
-... | no ¬p = no λ{ refl → ¬p refl }
-... | yes refl
   with (n , ty , s) ≟∃ₛ (n′ , ty′ , s′)
 ... | no ¬p    = no λ{ refl → ¬p refl }
+... | yes refl
+  with x ≟ℕ x₁
+... | no ¬p = no λ{ refl → ¬p refl }
 ... | yes refl = yes refl
 (n , ty , (absAfter x ⇒ s)) ≟∃ₛ (n′ , ty′ , (relAfter x₁ ⇒ s′)) = no λ ()
 
@@ -247,10 +248,11 @@ _≟∃ₛ_ : Decidable {A = ∃Script} _≡_
 (n , ty , (relAfter x ⇒ s)) ≟∃ₛ (n′ , .`Bool , versig _ x₁) = no λ ()
 (n , ty , (relAfter x ⇒ s)) ≟∃ₛ (n′ , ty′ , (absAfter x₁ ⇒ s′)) = no λ ()
 (n , ty , (relAfter x ⇒ s)) ≟∃ₛ (n′ , ty′ , (relAfter x₁ ⇒ s′))
-  with x ≟ℕ x₁
+  -- NB: If _≟∃ₛ_ is done after _≟ℕ_ causes Agda to fail termination checking after 2.6.1
+  with (n , ty , s) ≟∃ₛ (n′ , ty′ , s′)
 ... | no ¬p    = no λ{ refl → ¬p refl }
 ... | yes refl
-  with (n , ty , s) ≟∃ₛ (n′ , ty′ , s′)
+  with x ≟ℕ x₁
 ... | no ¬p    = no λ{ refl → ¬p refl }
 ... | yes refl = yes refl
 
