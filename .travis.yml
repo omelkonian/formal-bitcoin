@@ -29,7 +29,7 @@ script:
 
 deploy:
   provider: pages
-	strategy: git
+  strategy: git
   skip-cleanup: true
   token: $GITHUB_TOKEN
   target_branch: gh-pages
