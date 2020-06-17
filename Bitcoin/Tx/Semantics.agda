@@ -2,7 +2,7 @@
 -- Semantics of transactions.
 ------------------------------------------------------------------------
 {-# OPTIONS --allow-unsolved-metas #-}
-module Bitcoin.Semantics.Tx where
+module Bitcoin.Tx.Semantics where
 
 open import Data.Bool     using (Bool; true)
 open import Data.Nat      using (_∸_; _≥_)
@@ -18,7 +18,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
 open import Bitcoin.Script.Base
-open import Bitcoin.Semantics.Script
+open import Bitcoin.Script.Semantics
 open import Bitcoin.Tx.Base
 open import Bitcoin.Tx.Crypto
 

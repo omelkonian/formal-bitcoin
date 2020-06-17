@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- Denotational semantics for Bitcoin scripts.
 ------------------------------------------------------------------------
-module Bitcoin.Semantics.Script where
+module Bitcoin.Script.Semantics where
 
 open import Data.Empty          using (⊥-elim)
 open import Data.Unit           using (tt)

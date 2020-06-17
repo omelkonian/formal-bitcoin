@@ -5,6 +5,10 @@ module Bitcoin.Crypto where
 
 open import Data.Bool    using (Bool; T)
 open import Data.Integer using (ℤ)
+open import Data.Product using (_,_)
+
+open import Prelude.Lists
+open import Prelude.DecEq
 
 open import Bitcoin.BasicTypes
 
@@ -13,6 +17,8 @@ record KeyPair : Set where
     pub : ℤ
     sec : ℤ
 open KeyPair public
+
+unquoteDecl DecEqᵏᵖ = DERIVE DecEq [ quote KeyPair , DecEqᵏᵖ ]
 
 postulate
   -- hashing function

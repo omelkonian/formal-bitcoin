@@ -2,7 +2,7 @@
 -- Blockchain and consistency.
 ------------------------------------------------------------------------
 -- {-# OPTIONS --allow-unsolved-metas #-}
-module Bitcoin.Semantics.Consistency where
+module Bitcoin.Consistency where
 
 open import Function      using (_∘_)
 open import Data.Product  using (_,_; proj₁; proj₂; ∃-syntax)
@@ -20,13 +20,14 @@ open import Relation.Nullary                      using (yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
 open import Prelude.Lists using (indices)
+open import Prelude.DecEq
+open import Prelude.Set'
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Script.Base
 open import Bitcoin.Tx.Base
 open import Bitcoin.Tx.Crypto
-open import Bitcoin.Tx.DecidableEquality
-open import Bitcoin.Semantics.Tx
+open import Bitcoin.Tx.Semantics
 
 -- Blockchain
 Blockchain : Set
@@ -34,29 +35,24 @@ Blockchain = List TimedTx -- in reverse chronological order, in contrast to the 
 
 variable txs txs′ : Blockchain
 
-module _ where
-  open SETₜₜₓ
+trans : Blockchain → Set⟨ TimedTx ⟩
+trans = fromList
 
-  trans : Blockchain → Set⟨TimedTx⟩
-  trans = fromList
-
-  match : Blockchain → HashId → Set⟨TimedTx⟩
-  match []                _   = ∅
-  match ((tx at t) ∷ txs) tx′ with hashTx tx ≟ℤ tx′
-  ... | no _  = match txs tx′
-  ... | yes _ = singleton (tx at t)
-              ∪ match txs tx′
+match : Blockchain → HashId → Set⟨ TimedTx ⟩
+match []                _   = ∅
+match ((tx at t) ∷ txs) tx′ with hashTx tx ≟ℤ tx′
+... | no _  = match txs tx′
+... | yes _ = singleton (tx at t)
+            ∪ match txs tx′
 
 -- UTXO: Unspent transaction outputs.
-open SETᵢ
-
-UTXOₜₓ : ∃Tx → Set⟨TxInput⟩
+UTXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
 UTXOₜₓ ∃tx@(_ , o , tx) = fromList (map (λ i → hashTx ∃tx at i) (upTo o))
 
-STXOₜₓ : ∃Tx → Set⟨TxInput⟩
+STXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
 STXOₜₓ (_ , _ , tx) = fromList (toList (inputs tx))
 
-UTXO : Blockchain → Set⟨TxInput⟩
+UTXO : Blockchain → Set⟨ TxInput ⟩
 UTXO []              = ∅
 UTXO (tx at _ ∷ txs) = UTXO txs ─ STXOₜₓ tx
                      ∪ UTXOₜₓ tx
@@ -77,7 +73,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       let
         (tx♯ at _) = tx ‼ⁱ i
       in
-        ∃[ tx ] (match txs tx♯ ≡ SETₜₜₓ.singleton tx)
+        ∃[ tx ] (match txs tx♯ ≡ singleton tx)
 
     noOutOfBounds : ∀ (i : Fin i) →
       let

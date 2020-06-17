@@ -4,12 +4,15 @@
 module Bitcoin.Tx.Base where
 
 open import Data.Nat     using (ℕ)
-open import Data.Product using (∃-syntax)
+open import Data.Product using (∃-syntax; _,_)
 open import Data.Fin     using (Fin)
 open import Data.Integer using (ℤ)
 open import Data.Vec     using (Vec; lookup)
 
 open import Relation.Binary.PropositionalEquality using (_≡_)
+
+open import Prelude.Lists
+open import Prelude.DecEq
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Script.Base
@@ -20,12 +23,14 @@ record TxInput : Set where
     txId  : HashId  -- referenced previous transaction
     index : ℕ       -- index in the referenced transaction's outputs
 open TxInput public
+unquoteDecl DecEqᵢ = DERIVE DecEq [ quote TxInput , DecEqᵢ ]
 
 record TxOutput (ctx : ScriptContext) : Set where
   field
     value     : Value
     validator : BitcoinScript ctx
 open TxOutput public
+unquoteDecl DecEqₒ = DERIVE DecEq [ quote TxOutput , DecEqₒ ]
 ∃TxOutput = ∃[ ctx ] TxOutput ctx
 
 Witness : ℕ → Set
@@ -42,6 +47,9 @@ record Tx (i o : ℕ) : Set where
     outputs : Vec ∃TxOutput o  -- outputs
     absLock : Time             -- absolute timelock
 open Tx public
+
+unquoteDecl DecEqₜₓ = DERIVE DecEq [ quote Tx , DecEqₜₓ ]
+
 ∃Tx = ∃[ i ] ∃[ o ] Tx i o
 
 variable
@@ -70,3 +78,5 @@ record TimedTx : Set where
     transaction : ∃Tx
     time        : Time
 open TimedTx public
+
+unquoteDecl DecEqₜₜₓ = DERIVE DecEq [ quote TimedTx , DecEqₜₜₓ ]

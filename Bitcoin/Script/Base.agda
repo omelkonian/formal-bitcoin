@@ -16,17 +16,21 @@ open import Data.Nat.Properties using (≰⇒≥)
 
 open import Relation.Nullary using (yes; no)
 
+open import Prelude.DecEq
+
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
 
 data ScriptContext : Set where
   Ctx : ℕ → ScriptContext
+unquoteDecl DecEqᶜᵗˣ = DERIVE DecEq [ quote ScriptContext , DecEqᶜᵗˣ ]
 
 ctxToℕ : ScriptContext → ℕ
 ctxToℕ (Ctx n) = n
 
 data ScriptType : Set where
   `Bool `ℤ : ScriptType
+unquoteDecl DecEqᵗʸ = DERIVE DecEq [ quote ScriptType , DecEqᵗʸ ]
 
 variable
   ctx ctx′ : ScriptContext
@@ -64,6 +68,9 @@ data Script : ScriptContext  -- size of the environment/context
 
 ∃Script = ∃[ ctx ] ∃[ ty ] Script ctx ty
 
+unquoteDecl DecEqˢ = DERIVE DecEq [ quote Script , DecEqˢ ]
+
+-- smart constructors
 `false : Script ctx `Bool
 `false = ` (+ 1) `= ` (+ 0)
 
@@ -81,6 +88,8 @@ e `∨ e′ = `if e then `true else e′
 
 data BitcoinScript (ctx : ScriptContext) : Set where
   ƛ_ : Script ctx `Bool → BitcoinScript ctx
+
+unquoteDecl DecEqᵇˢ = DERIVE DecEq [ quote BitcoinScript , DecEqᵇˢ ]
 
 ∃BitcoinScript = ∃[ ctx ] BitcoinScript ctx
 
