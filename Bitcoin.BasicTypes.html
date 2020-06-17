@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Bitcoin.BasicTypes</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- Basic types.</a>
+<a id="90" class="Comment">------------------------------------------------------------------------</a>
+<a id="163" class="Keyword">module</a> <a id="170" href="Bitcoin.BasicTypes.html" class="Module">Bitcoin.BasicTypes</a> <a id="189" class="Keyword">where</a>
+
+<a id="196" class="Keyword">open</a> <a id="201" class="Keyword">import</a> <a id="208" href="Data.Nat.html" class="Module">Data.Nat</a>     <a id="221" class="Keyword">using</a> <a id="227" class="Symbol">(</a><a id="228" href="Agda.Builtin.Nat.html#192" class="Datatype">ℕ</a><a id="229" class="Symbol">)</a>
+<a id="231" class="Keyword">open</a> <a id="236" class="Keyword">import</a> <a id="243" href="Data.Integer.html" class="Module">Data.Integer</a> <a id="256" class="Keyword">using</a> <a id="262" class="Symbol">(</a><a id="263" href="Agda.Builtin.Int.html#246" class="Datatype">ℤ</a><a id="264" class="Symbol">)</a>
+
+<a id="Value"></a><a id="267" href="Bitcoin.BasicTypes.html#267" class="Function">Value</a> <a id="273" class="Symbol">:</a> <a id="275" class="PrimitiveType">Set</a>
+<a id="279" href="Bitcoin.BasicTypes.html#267" class="Function">Value</a> <a id="285" class="Symbol">=</a> <a id="287" href="Agda.Builtin.Nat.html#192" class="Datatype">ℕ</a>
+
+<a id="$"></a><a id="290" href="Bitcoin.BasicTypes.html#290" class="Function">$</a> <a id="292" class="Symbol">:</a> <a id="294" href="Agda.Builtin.Nat.html#192" class="Datatype">ℕ</a> <a id="296" class="Symbol">→</a> <a id="298" href="Agda.Builtin.Nat.html#192" class="Datatype">ℕ</a>
+<a id="300" href="Bitcoin.BasicTypes.html#290" class="Function">$</a> <a id="302" href="Bitcoin.BasicTypes.html#302" class="Bound">v</a> <a id="304" class="Symbol">=</a> <a id="306" href="Bitcoin.BasicTypes.html#302" class="Bound">v</a>
+
+<a id="Time"></a><a id="309" href="Bitcoin.BasicTypes.html#309" class="Function">Time</a> <a id="314" class="Symbol">:</a> <a id="316" class="PrimitiveType">Set</a>
+<a id="320" href="Bitcoin.BasicTypes.html#309" class="Function">Time</a> <a id="325" class="Symbol">=</a> <a id="327" href="Agda.Builtin.Nat.html#192" class="Datatype">ℕ</a>
+
+<a id="HashId"></a><a id="330" href="Bitcoin.BasicTypes.html#330" class="Function">HashId</a> <a id="337" class="Symbol">:</a> <a id="339" class="PrimitiveType">Set</a>
+<a id="343" href="Bitcoin.BasicTypes.html#330" class="Function">HashId</a> <a id="350" class="Symbol">=</a> <a id="352" href="Agda.Builtin.Int.html#246" class="Datatype">ℤ</a>
+
+<a id="355" class="Keyword">variable</a>
+  <a id="366" href="Bitcoin.BasicTypes.html#366" class="Generalizable">A</a> <a id="368" href="Bitcoin.BasicTypes.html#368" class="Generalizable">B</a> <a id="370" href="Bitcoin.BasicTypes.html#370" class="Generalizable">C</a> <a id="372" class="Symbol">:</a> <a id="374" class="PrimitiveType">Set</a>
+  <a id="380" href="Bitcoin.BasicTypes.html#380" class="Generalizable">n</a> <a id="382" href="Bitcoin.BasicTypes.html#382" class="Generalizable">n′</a> <a id="385" class="Symbol">:</a> <a id="387" href="Agda.Builtin.Nat.html#192" class="Datatype">ℕ</a>
+  <a id="391" href="Bitcoin.BasicTypes.html#391" class="Generalizable">t</a> <a id="393" href="Bitcoin.BasicTypes.html#393" class="Generalizable">t′</a> <a id="396" class="Symbol">:</a> <a id="398" href="Bitcoin.BasicTypes.html#309" class="Function">Time</a>
+</pre></body></html>
