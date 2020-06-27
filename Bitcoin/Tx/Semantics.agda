@@ -4,16 +4,8 @@
 {-# OPTIONS --allow-unsolved-metas #-}
 module Bitcoin.Tx.Semantics where
 
-open import Data.Bool     using (Bool; true)
-open import Data.Nat      using (_∸_; _≥_)
-open import Data.Product  using (_×_; _,_; proj₁; proj₂; ∃-syntax)
-open import Data.List     using (List; [_])
-open import Data.Vec as V using ()
-open import Data.Fin as F using (Fin; toℕ)
-  renaming (zero to 0F)
-
-open import Relation.Nullary                      using (¬_)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Prelude.Init
+open import Prelude.ToN
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -63,9 +55,9 @@ module Example4 where
 
   T₀ : Tx 0 1
   T₀ = record
-         { inputs = V.[]
-         ; wit = V.[]
-         ; relLock = V.[]
+         { inputs  = []
+         ; wit     = []
+         ; relLock = []
          ; outputs = V.[ Ctx 1 , (record { value = v₀ ; validator = ƛ (versig ks [ 0F ]) }) ]
          ; absLock = abs₀ }
 

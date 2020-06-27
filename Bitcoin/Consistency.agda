@@ -1,25 +1,12 @@
 ------------------------------------------------------------------------
 -- Blockchain and consistency.
 ------------------------------------------------------------------------
--- {-# OPTIONS --allow-unsolved-metas #-}
 module Bitcoin.Consistency where
 
-open import Function      using (_∘_)
-open import Data.Product  using (_,_; proj₁; proj₂; ∃-syntax)
-open import Data.Nat      using (zero; suc; _≥_; _<_)
-open import Data.Integer  using ()
-  renaming (_≟_ to _≟ℤ_)
-open import Data.Fin      using (Fin; fromℕ<)
-open import Data.Vec as V using (tabulate; toList; sum)
-open import Data.List     using (List; []; _∷_; [_]; map; upTo)
+open import Data.Fin  using (fromℕ<)
 
-open import Data.List.Membership.Propositional            using (_∈_)
-open import Data.List.Relation.Unary.Unique.Propositional using (Unique)
-
-open import Relation.Nullary                      using (yes; no)
-open import Relation.Binary.PropositionalEquality using (_≡_)
-
-open import Prelude.Lists using (indices)
+open import Prelude.Init
+open import Prelude.Lists
 open import Prelude.DecEq
 open import Prelude.Set'
 
@@ -35,12 +22,12 @@ Blockchain = List TimedTx -- in reverse chronological order, in contrast to the 
 
 variable txs txs′ : Blockchain
 
-trans : Blockchain → Set⟨ TimedTx ⟩
-trans = fromList
+txSet : Blockchain → Set⟨ TimedTx ⟩
+txSet = fromList
 
 match : Blockchain → HashId → Set⟨ TimedTx ⟩
 match []                _   = ∅
-match ((tx at t) ∷ txs) tx′ with hashTx tx ≟ℤ tx′
+match ((tx at t) ∷ txs) tx′ with hashTx tx ≟ tx′
 ... | no _  = match txs tx′
 ... | yes _ = singleton (tx at t)
             ∪ match txs tx′
@@ -50,7 +37,7 @@ UTXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
 UTXOₜₓ ∃tx@(_ , o , tx) = fromList (map (λ i → hashTx ∃tx at i) (upTo o))
 
 STXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
-STXOₜₓ (_ , _ , tx) = fromList (toList (inputs tx))
+STXOₜₓ (_ , _ , tx) = fromList (V.toList (inputs tx))
 
 UTXO : Blockchain → Set⟨ TxInput ⟩
 UTXO []              = ∅
@@ -67,7 +54,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
     -- well-formedness conditions
 
     inputsUnique :
-      Unique (toList (inputs tx))
+      Unique (V.toList (inputs tx))
 
     singleMatch : ∀ (i : Fin i) →
       let
@@ -104,13 +91,13 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
     -- (3)
     valuesPreserved :
       let
-        ins  = tabulate λ i → let (_ at oᵢ) = tx ‼ⁱ i
-                                  (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-                                  oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
-                              in  value (proj₂ (Tᵢ ‼ᵒ oᵢ))
+        ins  = V.tabulate λ i → let (_ at oᵢ) = tx ‼ⁱ i
+                                    (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
+                                    oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
+                                in value (proj₂ (Tᵢ ‼ᵒ oᵢ))
         outs = V.map (value ∘ proj₂) (outputs tx)
       in
-        sum ins ≥ sum outs
+        V.sum ins ≥ V.sum outs
 
     -- (4)
     laterTime :

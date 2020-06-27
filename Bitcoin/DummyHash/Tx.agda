@@ -3,9 +3,7 @@
 ---------------------------------
 module Bitcoin.DummyHash.Tx where
 
-open import Data.Product using (_,_)
-open import Data.Integer using (+_)
-open import Data.List    using ([]; _∷_)
+open import Prelude.Init
 
 open import Bitcoin.Crypto using (KeyPair; sec)
 open import Bitcoin.DummyHash.Base

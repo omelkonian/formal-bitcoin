@@ -3,14 +3,7 @@
 ------------------------------------------------------------------------
 module Bitcoin.Tx.Base where
 
-open import Data.Nat     using (ℕ)
-open import Data.Product using (∃-syntax; _,_)
-open import Data.Fin     using (Fin)
-open import Data.Integer using (ℤ)
-open import Data.Vec     using (Vec; lookup)
-
-open import Relation.Binary.PropositionalEquality using (_≡_)
-
+open import Prelude.Init
 open import Prelude.Lists
 open import Prelude.DecEq
 
@@ -54,18 +47,19 @@ unquoteDecl DecEqₜₓ = DERIVE DecEq [ quote Tx , DecEqₜₓ ]
 
 variable
   i i′ o o′ : ℕ
+  -- T T′ : ∃Tx
 
 _‼ⁱ_ : Tx i o → Fin i → TxInput
-tx ‼ⁱ i = lookup (inputs tx) i
+tx ‼ⁱ i = V.lookup (inputs tx) i
 
 _‼ʷ_ : Tx i o → Fin i → ∃Witness
-tx ‼ʷ i = lookup (wit tx) i
+tx ‼ʷ i = V.lookup (wit tx) i
 
 _‼ʳ_ : Tx i o → Fin i → Time
-tx ‼ʳ i = lookup (relLock tx) i
+tx ‼ʳ i = V.lookup (relLock tx) i
 
 _‼ᵒ_ : Tx i o → Fin o → ∃TxOutput
-tx ‼ᵒ i = lookup (outputs tx) i
+tx ‼ᵒ i = V.lookup (outputs tx) i
 
 -- Coinbase transactions start at time t=0.
 Coinbase : Tx 0 o → Set

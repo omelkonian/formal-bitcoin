@@ -3,10 +3,7 @@
 ------------------------------------------------------------------------
 module Bitcoin.Crypto where
 
-open import Data.Bool    using (Bool; T)
-open import Data.Integer using (ℤ)
-open import Data.Product using (_,_)
-
+open import Prelude.Init
 open import Prelude.Lists
 open import Prelude.DecEq
 
@@ -19,6 +16,10 @@ record KeyPair : Set where
 open KeyPair public
 
 unquoteDecl DecEqᵏᵖ = DERIVE DecEq [ quote KeyPair , DecEqᵏᵖ ]
+
+private
+  variable
+    A B : Set
 
 postulate
   -- hashing function

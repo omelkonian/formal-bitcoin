@@ -4,23 +4,20 @@
 ---------------------------------------------------------------------------------
 module Bitcoin.DummyHash.Base where
 
-open import Function using (_∘_)
-
-open import Data.Product     using (_×_; _,_)
-open import Data.Nat         using (ℕ)
-open import Data.Integer     using (ℤ; +_; ∣_∣)
-open import Data.Char        using (toℕ)
-open import Data.String as S using (String)
-open import Data.List        using (List; sum; map; _∷_; [])
-open import Data.Vec as V    using (Vec)
+open import Prelude.Init
+open import Prelude.ToN
 
 open import Bitcoin.BasicTypes
+
+private
+  variable
+    A B : Set
 
 HashFunction : Set → Set
 HashFunction A = A → ℤ
 
 merge♯ : List ℤ → ℤ
-merge♯ = +_ ∘ sum ∘ map ∣_∣
+merge♯ = +_ ∘ sum ∘ map Integer.∣_∣
 
 nat♯ : HashFunction ℕ
 nat♯ = +_
@@ -35,4 +32,4 @@ pair♯ : HashFunction A → HashFunction B → HashFunction (A × B)
 pair♯ h₁ h₂ (a , b) = merge♯ (h₁ a ∷ h₂ b ∷ [])
 
 str♯ : HashFunction String
-str♯ = list♯ (+_ ∘ toℕ) ∘ S.toList
+str♯ = list♯ (+_ ∘ toℕ) ∘ Str.toList

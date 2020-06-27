@@ -3,28 +3,14 @@
 ------------------------------------------------------------------------
 module Bitcoin.Script.Semantics where
 
-open import Data.Empty          using (⊥-elim)
-open import Data.Unit           using (tt)
-open import Data.Product        using (_×_; _,_; proj₁; proj₂; ∃-syntax)
-open import Data.Bool           using (Bool; true; false; T; if_then_else_)
-open import Data.Maybe          using (Maybe; just; nothing; fromMaybe)
-open import Data.Fin as F       using (Fin)
-open import Data.Fin.Patterns   using (0F; 1F)
-open import Data.Nat            using (ℕ; suc; _≟_; _∸_; _≤_; s≤s; z≤n; _≥_; _≥?_)
-  renaming (_+_ to _+ℕ_)
-open import Data.Integer        using (ℤ; +_; _+_; _-_; _<_; _<?_)
-  renaming (_≟_ to _≟ℤ_; ∣_∣ to abs)
-open import Data.Nat.Binary     using (fromℕ)
+open import Data.Integer    using (_+_; _-_; _<_; _<?_)
+open import Data.Nat.Binary using (fromℕ)
   renaming (size to digits)
-open import Data.Nat.DivMod     using (_/_)
-open import Data.List           using (List; []; [_]; _∷_; map)
-open import Data.Vec as V       using (Vec; lookup; _[_]≔_)
-open import Data.Vec.Properties using (≡-dec)
+open import Data.Nat.DivMod using (_/_)
+open import Data.Vec        using (lookup; _[_]≔_)
 
-open import Relation.Nullary                      using (Dec; yes; no; ¬_)
-open import Relation.Nullary.Decidable            using (⌊_⌋)
-open import Relation.Binary                       using (Decidable)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+open import Prelude.Init hiding (_+_; _<_; _<?_)
+open import Prelude.DecEq
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -58,9 +44,9 @@ infix 8 ⟦_⟧′_
 ⟦ e `+ e′              ⟧′ ρ = ⦇ ⟦ e ⟧′ ρ + ⟦ e′ ⟧′ ρ ⦈
 ⟦ e `- e′              ⟧′ ρ = ⦇ ⟦ e ⟧′ ρ - ⟦ e′ ⟧′ ρ ⦈
 ⟦ e `= e′              ⟧′ ρ
-  -- ⦇ ⌊ ⟦ e ⟧′ ρ ≟ℤ ⟦ e′ ⟧′ ρ ⌋ ⦈
+  -- ⦇ ⌊ ⟦ e ⟧′ ρ ≟ ⟦ e′ ⟧′ ρ ⌋ ⦈
   with ⟦ e ⟧′ ρ | ⟦ e′ ⟧′ ρ
-... | just me | just me′ = just ⌊ me ≟ℤ me′ ⌋
+... | just me | just me′ = just ⌊ me ≟ me′ ⌋
 ... | nothing | _        = nothing
 ... | _       | nothing  = nothing
 ⟦ e `< e′              ⟧′ ρ
@@ -73,7 +59,7 @@ infix 8 ⟦_⟧′_
 ⟦ ∣ e ∣                ⟧′ ρ = ⦇ size (⟦ e ⟧′ ρ) ⦈
   where
     size : ℤ → ℤ
-    size x = + (suc (digits (fromℕ (abs x))) / 7) -- T0D0 ceiling (must involve floats...)
+    size x = + (suc (digits (fromℕ Integer.∣ x ∣)) / 7) -- T0D0 ceiling (must involve floats...)
 ⟦ hash e               ⟧′ ρ = ⦇ HASH (⟦ e ⟧′ ρ) ⦈
 ⟦ versig k σ           ⟧′ ρ = just (ver⋆ k (map (lookup (context ρ)) σ) (tx ρ) (index ρ))
 ⟦ absAfter t ⇒ e       ⟧′ ρ with absLock (tx ρ) ≥? t
@@ -85,7 +71,7 @@ infix 8 ⟦_⟧′_
 ... | no  _ = nothing
 
 ⟦_⟧_ : BitcoinScript ctx → Environment i o ctx → Bool
-⟦ ƛ x ⟧ ρ = fromMaybe false (⟦ x ⟧′ ρ)
+⟦ ƛ x ⟧ ρ = M.fromMaybe false (⟦ x ⟧′ ρ)
 
 -- Script verification
 infix 5 _,_⊨_
@@ -98,8 +84,8 @@ module Example2 where
           {txi : TxInput} {i} {is : Vec TxInput i} {ws : Vec ∃Witness i} {rs : Vec Time (suc i)}
           {o} {os : Vec ∃TxOutput o} {t : Time}
           {h≡ : HASH s ≡ h}
-      → let t = record { inputs = txi V.∷ is
-                        ; wit = (2 , σ V.∷ s V.∷ V.[]) V.∷ ws
+      → let t = record { inputs = txi ∷ is
+                        ; wit = (2 , σ ∷ s ∷ []) ∷ ws
                         ; relLock = rs
                         ; outputs = os
                         ; absLock = t } in
@@ -107,7 +93,7 @@ module Example2 where
       → (t , 0F ⊨ (ƛ (versig [ k ] [ 0F ] `∧ (hash (var {n = 2} 1F) `= ` h)))) {pr = refl}
   ex2 {h≡ = h≡} {σ≡ = σ≡} rewrite h≡ | σ≡ = taut
     where
-      taut : ∀ {w} → T ⌊ w ≟ℤ w ⌋
-      taut {w} with w ≟ℤ w
-      ... | yes p = tt
+      taut : ∀ {w : ℤ} → T ⌊ w ≟ w ⌋
+      taut {w} with w ≟ w
+      ... | yes _ = tt
       ... | no ¬p = ⊥-elim (¬p refl)

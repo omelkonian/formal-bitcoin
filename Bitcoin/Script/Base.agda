@@ -3,19 +3,7 @@
 ------------------------------------------------------------------------
 module Bitcoin.Script.Base where
 
-open import Function using (flip)
-
-open import Data.Bool           using (Bool)
-open import Data.Product        using (∃-syntax; _,_)
-open import Data.List           using (List; []; [_]; _∷_; map; foldr)
-open import Data.Fin            using (Fin; inject≤)
-open import Data.Fin.Patterns   using (0F; 1F)
-open import Data.Integer        using (ℤ; +_)
-open import Data.Nat            using (ℕ; _≤_; _≤?_)
-open import Data.Nat.Properties using (≰⇒≥)
-
-open import Relation.Nullary using (yes; no)
-
+open import Prelude.Init
 open import Prelude.DecEq
 
 open import Bitcoin.BasicTypes
@@ -110,7 +98,7 @@ _ = ƛ versig [] [ 0F ] `∧ (hash (var 1F) `= hash (var 0F))
 
 -- Combining scripts
 mapFin : ∀ {n m} → n ≤ m → Script (Ctx n) ty → Script (Ctx m) ty
-mapFin n≤m (var x)                 = var (inject≤ x n≤m)
+mapFin n≤m (var x)                 = var (F.inject≤ x n≤m)
 mapFin n≤m (` x)                   = ` x
 mapFin n≤m (s `+ s₁)               = mapFin n≤m s `+ mapFin n≤m s₁
 mapFin n≤m (s `- s₁)               = mapFin n≤m s `- mapFin n≤m s₁
@@ -119,7 +107,7 @@ mapFin n≤m (s `< s₁)               = mapFin n≤m s `< mapFin n≤m s₁
 mapFin n≤m (`if s then s₁ else s₂) = `if mapFin n≤m s then mapFin n≤m s₁ else mapFin n≤m s₂
 mapFin n≤m ∣ s ∣                   = ∣ mapFin n≤m s ∣
 mapFin n≤m (hash s)                = hash (mapFin n≤m s)
-mapFin n≤m (versig x x₁)           = versig x (map (flip inject≤ n≤m) x₁)
+mapFin n≤m (versig x x₁)           = versig x (map (flip F.inject≤ n≤m) x₁)
 mapFin n≤m (absAfter x ⇒ s)        = absAfter x ⇒ mapFin n≤m s
 mapFin n≤m (relAfter x ⇒ s)        = relAfter x ⇒ mapFin n≤m s
 
@@ -131,7 +119,7 @@ mapFin n≤m (relAfter x ⇒ s)        = relAfter x ⇒ mapFin n≤m s
 ... | Ctx m , y
   with n ≤? m
 ... | yes n≤m = _ , (mapFin n≤m x `∨ y)
-... | no  n≰m = _ , (x `∨ mapFin (≰⇒≥ n≰m) y)
+... | no  n≰m = _ , (x `∨ mapFin (Nat.≰⇒≥ n≰m) y)
 
 ⋀ : List (Script ctx `Bool) → Script ctx `Bool
 -- ⋀ = foldr _`∧_ `true
