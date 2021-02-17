@@ -8,7 +8,7 @@ open import Data.Fin  using (fromℕ<)
 open import Prelude.Init
 open import Prelude.Lists
 open import Prelude.DecEq
-open import Prelude.Set'
+open import Prelude.Sets
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Script.Base
@@ -76,7 +76,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       let
         (Tᵢ♯ at oᵢ) = tx ‼ⁱ i
       in
-        Tᵢ♯ at oᵢ ∈′ UTXO txs
+        Tᵢ♯ at oᵢ ∈ˢ UTXO txs
 
     -- (2)
     inputsRedeemable : ∀ (i : Fin i) →
