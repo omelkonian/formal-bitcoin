@@ -6,6 +6,7 @@ module Bitcoin.Crypto where
 open import Prelude.Init
 open import Prelude.Lists
 open import Prelude.DecEq
+open import Prelude.ToN
 
 open import Bitcoin.BasicTypes
 
@@ -14,49 +15,68 @@ record KeyPair : Set where
     pub : ℤ
     sec : ℤ
 open KeyPair public
-
 unquoteDecl DecEqᵏᵖ = DERIVE DecEq [ quote KeyPair , DecEqᵏᵖ ]
 
 private
   variable
+    ℓ : Level
     A B : Set
 
+HashFunction : Set ℓ → Set ℓ
+HashFunction A = A → ℤ
+
 postulate
-  -- hashing function
-  HASH : A → ℤ
+  -- universal hashing function
+  HASH : HashFunction A
 
   -- signing/verifying
   SIG : KeyPair → A → ℤ
   VER : KeyPair → ℤ → A → Bool
   VERSIG≡ : ∀ {k : KeyPair} {x : A} → T (VER k (SIG k x) x)
 
--- Concrete "dummy" hashing functions, for use in examples (so that they compute)
-open import Function using (_∘_)
-open import Data.Product using (_×_; _,_)
-open import Data.List using (List; sum; map; _∷_; [])
-open import Data.Vec as V using (Vec)
-open import Data.Integer using (+_; ∣_∣)
-open import Data.Nat using (ℕ)
-open import Data.String as S using (String)
-open import Data.Char using (toℕ)
+record Hashable {ℓ} (A : Set ℓ) : Set ℓ where
+  field
+    _♯ : HashFunction A
+open Hashable ⦃ ... ⦄ public
 
-HashFunction : Set → Set
-HashFunction A = A → ℤ
+-- Concrete "dummy" hashing functions, for use in examples (so that they compute)
 
 merge♯ : List ℤ → ℤ
-merge♯ = +_ ∘ sum ∘ map ∣_∣
+merge♯ = +_ ∘ sum ∘ map Integer.∣_∣
 
-nat♯ : HashFunction ℕ
-nat♯ = +_
+instance
+  Hashable-ℤ : Hashable ℤ
+  Hashable-ℤ ._♯ = id
 
-list♯ : HashFunction A → HashFunction (List A)
-list♯ h = merge♯ ∘ map h
+  Hashable-Bool : Hashable Bool
+  Hashable-Bool ._♯ = if_then + 1 else + 0
 
-vec♯ : HashFunction A → HashFunction (Vec A n)
-vec♯ h = list♯ h ∘ V.toList
+  Hashable-ℕ : Hashable ℕ
+  Hashable-ℕ ._♯ = +_
 
-pair♯ : HashFunction A → HashFunction B → HashFunction (A × B)
-pair♯ h₁ h₂ (a , b) = merge♯ (h₁ a ∷ h₂ b ∷ [])
+  Hashable-Char : Hashable Char
+  Hashable-Char ._♯ c = toℕ c ♯
 
-str♯ : HashFunction String
-str♯ = list♯ (+_ ∘ toℕ) ∘ S.toList
+  Hashable-Fin : Hashable (Fin n)
+  Hashable-Fin ._♯ = _♯ ∘ toℕ
+
+  Hashable-List : ⦃ _ : Hashable A ⦄ → Hashable (List A)
+  Hashable-List ._♯ xs = merge♯ $ map _♯ xs
+
+  Hashable-Vec : ⦃ _ : Hashable A ⦄ → Hashable (Vec A n)
+  Hashable-Vec ._♯ = _♯ ∘ V.toList
+
+  Hashable-String : Hashable String
+  Hashable-String ._♯ = _♯ ∘ Str.toList
+
+  -- Deriving the hash of a dependent pair from hashing its parts.
+  Hashable-Σ : ∀ {A : Set} {B : A → Set} ⦃ _ : Hashable A ⦄ ⦃ _ : ∀ {x} → Hashable (B x) ⦄ → Hashable (Σ A B)
+  Hashable-Σ ._♯ (x , y) = merge♯ (x ♯ ∷ y ♯ ∷ [])
+
+  -- Deriving the hash of a union type.
+  Hashable-⊎ : ⦃ _ : Hashable A ⦄ ⦃ _ : Hashable B ⦄ → Hashable (A ⊎ B)
+  Hashable-⊎ ._♯ (inj₁ x) = (true  , x) ♯
+  Hashable-⊎ ._♯ (inj₂ y) = (false , y) ♯
+
+  Hashable-KeyPair : Hashable KeyPair
+  Hashable-KeyPair ._♯ k = (pub k , sec k) ♯

@@ -10,7 +10,4 @@ open import Bitcoin.Tx.Base
 open import Bitcoin.Tx.Crypto
 open import Bitcoin.Tx.Semantics
 
-open import Bitcoin.DummyHash.Base
-open import Bitcoin.DummyHash.Tx
-
 open import Bitcoin.Consistency

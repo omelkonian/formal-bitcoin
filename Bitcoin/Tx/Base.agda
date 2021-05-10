@@ -45,6 +45,33 @@ unquoteDecl DecEqₜₓ = DERIVE DecEq [ quote Tx , DecEqₜₓ ]
 
 ∃Tx = ∃[ i ] ∃[ o ] Tx i o
 
+∃i ∃o : ∃Tx → ℕ
+∃i = proj₁
+∃o = proj₁ ∘ proj₂
+
+∃inputs : (tx : ∃Tx) → Vec TxInput (proj₁ tx)
+∃inputs (_ , _ , tx) = inputs tx
+
+∃outputs : (tx : ∃Tx) → Vec ∃TxOutput (proj₁ $ proj₂ tx)
+∃outputs (_ , _ , tx) = outputs tx
+
+Tx⁺ ⁺Tx ⁺Tx⁺ : ℕ → ℕ → Set
+Tx⁺ i o = Tx i (suc o)
+⁺Tx i o = Tx (suc i) o
+⁺Tx⁺ i o = Tx (suc i) (suc o)
+
+∃Tx⁺ = ∃[ i ] ∃[ o ] Tx⁺ i o
+∃⁺Tx = ∃[ i ] ∃[ o ] ⁺Tx i o
+∃⁺Tx⁺ = ∃[ i ] ∃[ o ] ⁺Tx⁺ i o
+
+-- alternative representation of a transaction input, which is unhashed and well-bounded
+record TxInput′ : Set where
+  constructor _at_
+  field
+    tx′ : ∃Tx
+    index′ : Fin (∃o tx′)
+open TxInput′ public
+
 variable
   i i′ o o′ : ℕ
   -- T T′ : ∃Tx
@@ -62,8 +89,8 @@ _‼ᵒ_ : Tx i o → Fin o → ∃TxOutput
 tx ‼ᵒ i = V.lookup (outputs tx) i
 
 -- Coinbase transactions start at time t=0.
-Coinbase : Tx 0 o → Set
-Coinbase tx = absLock tx ≡ 0
+-- Coinbase : Tx 0 o → Set
+-- Coinbase tx = absLock tx ≡ 0
 
 -- Timed transactions.
 record TimedTx : Set where
