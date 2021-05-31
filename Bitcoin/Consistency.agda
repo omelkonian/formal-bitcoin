@@ -3,14 +3,13 @@
 ------------------------------------------------------------------------
 module Bitcoin.Consistency where
 
-open import Data.Fin  using (fromℕ<)
-
 open import Prelude.Init
 open import Prelude.General
 open import Prelude.Lists
 open import Prelude.DecEq
 open import Prelude.Sets
 open import Prelude.Functor
+open import Prelude.ToN
 
 open import Bitcoin.Crypto
 open import Bitcoin.BasicTypes
@@ -36,6 +35,7 @@ match ((tx at t) ∷ txs) tx♯ with tx ♯ ≟ tx♯
             ∪ match txs tx♯
 
 -- UTXO: Unspent transaction outputs.
+-- (0) EUTXO-like set-theoretic definition, based on txInputs instead of outputs for convenience
 UTXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
 UTXOₜₓ ∃tx@(_ , o , tx) = fromList $ map (λ i → (∃tx ♯) at i) (upTo o)
 
@@ -83,7 +83,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       let
         (_ at oᵢ) = tx ‼ⁱ i
         (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-        oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
+        oᵢ = F.fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
         vᵢ = value (proj₂ (Tᵢ ‼ᵒ oᵢ))
       in
         Tᵢ , oᵢ , tᵢ ↝[ vᵢ ] tx , i , t
@@ -93,7 +93,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       let
         ins  = V.tabulate λ i → let (_ at oᵢ) = tx ‼ⁱ i
                                     (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-                                    oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
+                                    oᵢ = F.fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
                                 in value (proj₂ (Tᵢ ‼ᵒ oᵢ))
         outs = V.map (value ∘ proj₂) (outputs tx)
       in
@@ -115,29 +115,7 @@ data ConsistentBlockchain : Blockchain → Set where
          → txs ▷ tx , t
          → ConsistentBlockchain (((_ , _ , tx) at t) ∷ txs)
 
-stxo : ∀ {tx b t} → ConsistentBlockchain ((tx at t) ∷ b) → List ∃TxOutput
-stxo {tx = i , _ , .tx} (_ ⊕ tx ∶- p)
-  = map f (allFin i)
-  module ∣stxo∣ where
-    f : Fin i → ∃TxOutput
-    f i =
-      let
-        record {singleMatch = singleMatch; noOutOfBounds = noOutOfBounds} = p
-        (_ at oᵢ) = tx ‼ⁱ i
-        (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-        oᵢ = fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
-      in
-        Tᵢ ‼ᵒ oᵢ
-
-utxoₜₓ : ∃Tx → Set⟨ ∃TxOutput ⟩
-utxoₜₓ (_ , _ , tx) = fromList (V.toList $ outputs tx)
-
-utxo : (b : Blockchain) → ConsistentBlockchain b → Set⟨ ∃TxOutput ⟩
-utxo .[] ∙ = ∅
-utxo (.((_ , _ , tx) at _) ∷ b) vb₀@(vb ⊕ tx ∶- _)
-  = utxo b vb ─ fromList (stxo vb₀)
-  ∪ utxoₜₓ (-, -, tx)
-
+-- (1) Non-constructive/indirect formulation of the UTXO set, via describing when an output is unspent.
 Unspent : (b : Blockchain) → (i : Index b) → let (_ , o , Tᵢ) at tᵢ = b ‼ i in
         ∀ (j : Fin o) → Set
 Unspent b i j =
@@ -181,3 +159,77 @@ Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
     --------------------------
   → ∃Unspent ((tx at t) ∷ b) o
 ∃Unspent-∷ vb (i , j , p , o≡) in∉ = fsuc i , j , Unspent-∷ p in∉ , o≡
+
+-- (2) Alternative set-theoretic/constructive formulation of the UTXO set, similar to the one in EUTXO.
+stxo : ∀ {tx b t} → ConsistentBlockchain ((tx at t) ∷ b) → List ∃TxOutput
+stxo {tx = i , _ , .tx} (_ ⊕ tx ∶- p)
+  = map f (allFin i)
+  module ∣stxo∣ where
+    f : Fin i → ∃TxOutput
+    f i =
+      let
+        record {singleMatch = singleMatch; noOutOfBounds = noOutOfBounds} = p
+        (_ at oᵢ) = tx ‼ⁱ i
+        (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
+        oᵢ = F.fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
+      in
+        Tᵢ ‼ᵒ oᵢ
+
+utxoₜₓ : ∃Tx → Set⟨ ∃TxOutput ⟩
+utxoₜₓ (_ , _ , tx) = fromList (V.toList $ outputs tx)
+
+utxo : (b : Blockchain) → ConsistentBlockchain b → Set⟨ ∃TxOutput ⟩
+utxo .[] ∙ = ∅
+utxo (.((_ , _ , tx) at _) ∷ b) vb₀@(vb ⊕ tx ∶- _)
+  = utxo b vb ─ fromList (stxo vb₀)
+  ∪ utxoₜₓ (-, -, tx)
+
+-- T0D0: prove equivalence between (1) and (2)
+
+-- Unspent : (b : Blockchain) → (i : Index b) → let (_ , o , Tᵢ) at tᵢ = b ‼ i in ∀ (j : Fin o) → Set
+-- utxo : (b : Blockchain) → ConsistentBlockchain b → Set⟨ ∃TxOutput ⟩
+-- UTXO : Blockchain → Set⟨ TxInput ⟩
+
+{-
+Unspent→UTXO : ∀ {b : Blockchain} {i : Index b} → let _ , o , tx = transaction (b ‼ i) in
+               ∀ {j : Fin o}
+  → Unspent b i j
+    --————————————————————————
+  → ((tx ♯) at toℕ j) ∈ˢ UTXO b
+Unspent→UTXO {b} {i} {j} p = {!!}
+
+UTXO→Unspent : ∀ {b : Blockchain} {i : Index b} → let _ , o , tx = transaction (b ‼ i) in
+               ∀ {j : Fin o}
+  → ((tx ♯) at toℕ j) ∈ˢ UTXO b
+    --————————————————————————
+  → Unspent b i j
+UTXO→Unspent {x ∷ b} {i} {j} p = {!!}
+-}
+
+{- WIP
+-- record BlockchainTx : Set where
+--   field
+--     b : Blockchain
+--     i : Index b
+
+--   getTTx : TimedTx
+--   getTTx = b ‼ i
+
+--   getTx : ∃Tx
+--   getTx = transaction (getTTx b)
+
+-- BlockchainTx = Σ[ b ∈ Blockchain ] Index b
+
+-- getTTx : BlockchainTx → TimedTx
+-- getTTx (b , i) = b ‼ i
+
+-- getTx : BlockchainTx → ∃Tx
+-- getTx = transaction ∘ getTTx
+
+-- Unspent : (btx : BlockchainTx) →  Pred₀ (Fin $ ∃o $ getTx btx)
+-- Unspent (b , i) j =
+--   let (_ , o , Tᵢ) at tᵢ = b ‼ i in
+--   ∀ (i′ : Index b) (leq : i′ F.≤ i) → let (i′ , _ , Tᵢ′) at tᵢ′ = b ‼ i′ in
+--   ∀ (j′ : Fin i′) →
+--     Tᵢ , j , tᵢ ↛ Tᵢ′ , j′ , tᵢ′
+-}

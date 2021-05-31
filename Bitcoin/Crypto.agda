@@ -17,10 +17,7 @@ record KeyPair : Set where
 open KeyPair public
 unquoteDecl DecEqᵏᵖ = DERIVE DecEq [ quote KeyPair , DecEqᵏᵖ ]
 
-private
-  variable
-    ℓ : Level
-    A B : Set
+private variable A B : Set
 
 HashFunction : Set ℓ → Set ℓ
 HashFunction A = A → ℤ
