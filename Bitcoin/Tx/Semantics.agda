@@ -47,7 +47,7 @@ record _,_,_↝[_]_,_,_ (tx : Tx i o) (i : Fin o) (t : Time)
 
 
 _,_,_↛_,_,_ : Tx i o → Fin o → Time → Tx i′ o′ → Fin i′ → Time → Set
-tx , i , t ↛ tx′ , j , t′ = ¬ ∃[ v ] (tx , i , t ↝[ v ] tx′ , j , t′)
+tx , i , t ↛ tx′ , j , t′ = ¬ (∃[ v ] (tx , i , t ↝[ v ] tx′ , j , t′))
 
 module Example4 where
 
