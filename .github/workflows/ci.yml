@@ -12,5 +12,5 @@ jobs:
           agda-version: 2.6.1.3
           stdlib-version: 1.6
           libraries: omelkonian/formal-prelude#v0.1.4
-          main: Bitcoin/Main
+          main: Bitcoin
           token: ${{ secrets.GITHUB_TOKEN }}

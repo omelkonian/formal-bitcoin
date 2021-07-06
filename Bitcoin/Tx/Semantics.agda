@@ -6,6 +6,7 @@ module Bitcoin.Tx.Semantics where
 
 open import Prelude.Init
 open import Prelude.ToN
+open import Prelude.Ord
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto

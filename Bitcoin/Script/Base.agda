@@ -5,6 +5,7 @@ module Bitcoin.Script.Base where
 
 open import Prelude.Init
 open import Prelude.DecEq
+open import Prelude.Ord
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto

@@ -10,6 +10,7 @@ open import Prelude.DecEq
 open import Prelude.Sets
 open import Prelude.Functor
 open import Prelude.ToN
+open import Prelude.Ord
 
 open import Bitcoin.Crypto
 open import Bitcoin.BasicTypes

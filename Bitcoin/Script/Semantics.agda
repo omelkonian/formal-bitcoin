@@ -3,14 +3,14 @@
 ------------------------------------------------------------------------
 module Bitcoin.Script.Semantics where
 
-open import Data.Integer    using (_+_; _-_; _<_; _<?_)
-open import Data.Nat.Binary using (fromℕ)
-  renaming (size to digits)
+open import Data.Integer    using (_+_; _-_)
+open import Data.Nat.Binary using (fromℕ) renaming (size to digits)
 open import Data.Nat.DivMod using (_/_)
 open import Data.Vec        using (lookup; _[_]≔_)
 
-open import Prelude.Init hiding (_+_; _<_; _<?_)
+open import Prelude.Init hiding (_+_)
 open import Prelude.DecEq
+open import Prelude.Ord
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
