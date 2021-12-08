@@ -106,10 +106,10 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
 
 -- Consistency.
 data ConsistentBlockchain : Blockchain → Set where
-  -- ∙_∶-_  : (tx : Tx 0 o)
+  -- ∎_∶-_  : (tx : Tx 0 o)
   --        → Coinbase tx
   --        → ConsistentBlockchain [ (_ , _ , tx) at 0 ]
-  ∙  : ConsistentBlockchain []
+  ∎  : ConsistentBlockchain []
 
   _⊕_∶-_ : ConsistentBlockchain txs
          → (tx : Tx i o)
@@ -125,11 +125,11 @@ Unspent b i j =
   ∀ (j′ : Fin i′) →
     Tᵢ , j , tᵢ ↛ Tᵢ′ , j′ , tᵢ′
 
-Unspent-∷ : ∀ {tx t} {b : Blockchain} {i : Index b} → let (_ , o , Tᵢ) at tᵢ = b ‼ i in ∀ {j : Fin o}
-  → Unspent b i j
-  → ((Tᵢ atᵒ j) V.Mem.∉ ∃inputs tx)
-    ----------------------------------
-  → Unspent ((tx at t) ∷ b) (fsuc i) j
+Unspent-∷ : ∀ {tx t} {b : Blockchain} {i : Index b} → let (_ , o , Tᵢ) at tᵢ = b ‼ i in ∀ {j : Fin o} →
+  ∙ Unspent b i j
+  ∙ (((Tᵢ atᵒ j) V.Mem.∉ ∃inputs tx)
+    ─────────────────────────────────────────────────────────
+    Unspent ((tx at t) ∷ b) (fsuc i) j)
 Unspent-∷ {tx = tx} unsp in∉ 0F 0≤ j′ (v , record {input~output = io})
   = in∉ (subst (V.Mem._∈ ∃inputs tx) io (V.Mem.∈-lookup j′ _))
 Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
@@ -144,8 +144,6 @@ Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
     Σ (Fin o) λ j →
       Unspent b i j × (Tᵢ ‼ᵒ j ≡ txo)
 
-
-
 ↝-irreflexive : ∀ {T : Tx i o} {oᵢ : Fin o} {iᵢ : Fin i} {t₀ t v t′}
   → ConsistentBlockchain [ (-, -, T) at t₀ ]
   → ¬ (T , oᵢ , t ↝[ v ] T , iᵢ , t′)
@@ -153,12 +151,13 @@ Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
 
 --
 
-∃Unspent-∷ : ∀ {t tx b o}
-  → (vb : ConsistentBlockchain $ (tx at t) ∷ b)
-  → (wit : ∃Unspent b o) → let i , j , _ = wit; (_ , _ , Tᵢ) at _ = b ‼ i in
-    (Tᵢ atᵒ j V.Mem.∉ ∃inputs tx)
-    --------------------------
-  → ∃Unspent ((tx at t) ∷ b) o
+∃Unspent-∷ : ∀ {t tx b o} →
+  ∙ ConsistentBlockchain ((tx at t) ∷ b)
+  → (wit : ∃Unspent b o)
+  → let i , j , _ = wit; (_ , _ , Tᵢ) at _ = b ‼ i in
+  ∙ (Tᵢ atᵒ j V.Mem.∉ ∃inputs tx)
+    ─────────────────────────────────────────────────────────
+    ∃Unspent ((tx at t) ∷ b) o
 ∃Unspent-∷ vb (i , j , p , o≡) in∉ = fsuc i , j , Unspent-∷ p in∉ , o≡
 
 -- (2) Alternative set-theoretic/constructive formulation of the UTXO set, similar to the one in EUTXO.
@@ -180,7 +179,7 @@ utxoₜₓ : ∃Tx → Set⟨ ∃TxOutput ⟩
 utxoₜₓ (_ , _ , tx) = fromList (V.toList $ outputs tx)
 
 utxo : (b : Blockchain) → ConsistentBlockchain b → Set⟨ ∃TxOutput ⟩
-utxo .[] ∙ = ∅
+utxo .[] ∎ = ∅
 utxo (.((_ , _ , tx) at _) ∷ b) vb₀@(vb ⊕ tx ∶- _)
   = utxo b vb ─ fromList (stxo vb₀)
   ∪ utxoₜₓ (-, -, tx)
@@ -195,15 +194,15 @@ utxo (.((_ , _ , tx) at _) ∷ b) vb₀@(vb ⊕ tx ∶- _)
 Unspent→UTXO : ∀ {b : Blockchain} {i : Index b} → let _ , o , tx = transaction (b ‼ i) in
                ∀ {j : Fin o}
   → Unspent b i j
-    --————————————————————————
-  → ((tx ♯) at toℕ j) ∈ˢ UTXO b
+    ─────────────────────────────────────────────────────────
+    ((tx ♯) at toℕ j) ∈ˢ UTXO b
 Unspent→UTXO {b} {i} {j} p = {!!}
 
 UTXO→Unspent : ∀ {b : Blockchain} {i : Index b} → let _ , o , tx = transaction (b ‼ i) in
                ∀ {j : Fin o}
   → ((tx ♯) at toℕ j) ∈ˢ UTXO b
-    --————————————————————————
-  → Unspent b i j
+    ─────────────────────────────────────────────────────────
+    Unspent b i j
 UTXO→Unspent {x ∷ b} {i} {j} p = {!!}
 -}
 
