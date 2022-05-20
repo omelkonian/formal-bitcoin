@@ -1,4 +1,4 @@
-## A formal model of Bitcoin transactions in Agda
+## A formal model of Bitcoin transactions in Agda [![CI](https://github.com/omelkonian/formal-bitcoin/workflows/CI/badge.svg)](https://github.com/omelkonian/formal-bitcoin/actions)
 
 Based on:
 > Atzei, N., Bartoletti, M., Lande, S. and Zunino, R., 2018, February.
