@@ -5,14 +5,10 @@ module Bitcoin.BasicTypes where
 
 open import Prelude.Init
 
-Value : Set
-Value = ℕ
-
-Time : Set
-Time = ℕ
-
-HashId : Set
+Value  = ℕ
+Time   = ℕ
 HashId = ℤ
+-- HashId = Bitstring
 
 variable
   n n′ : ℕ

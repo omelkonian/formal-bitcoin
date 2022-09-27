@@ -60,7 +60,7 @@ infix 8 ⟦_⟧′_
   where
     size : ℤ → ℤ
     size x = + (suc (digits (fromℕ Integer.∣ x ∣)) / 7) -- T0D0 ceiling (must involve floats...)
-⟦ hash e               ⟧′ ρ = ⦇ HASH (⟦ e ⟧′ ρ) ⦈
+⟦ hash e               ⟧′ ρ = ⦇ (⟦ e ⟧′ ρ) ♯ ⦈
 ⟦ versig k σ           ⟧′ ρ = just (ver⋆ k (map (lookup (context ρ)) σ) (tx ρ) (index ρ))
 ⟦ absAfter t ⇒ e       ⟧′ ρ with absLock (tx ρ) ≥? t
 ... | yes _ = ⟦ e ⟧′ ρ
@@ -83,7 +83,7 @@ module Example2 where
   ex2 : ∀ {σ s h : ℤ} {k : KeyPair}
           {txi : TxInput} {i} {is : Vec TxInput i} {ws : Vec ∃Witness i} {rs : Vec Time (suc i)}
           {o} {os : Vec ∃TxOutput o} {t : Time}
-          {h≡ : HASH s ≡ h}
+          {h≡ : s ♯ ≡ h}
       → let t = record { inputs = txi ∷ is
                         ; wit = (2 , σ ∷ s ∷ []) ∷ ws
                         ; relLock = rs

@@ -27,7 +27,7 @@ unquoteDecl DecEqₒ = DERIVE DecEq [ quote TxOutput , DecEqₒ ]
 ∃TxOutput = ∃[ ctx ] TxOutput ctx
 
 Witness : ℕ → Set
-Witness n = Vec ℤ n
+Witness n = Vec HashId n
 
 ∃Witness = ∃[ n ] Witness n
 
