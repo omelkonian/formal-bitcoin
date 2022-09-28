@@ -71,6 +71,7 @@ record TxInput′ : Set where
     tx′ : ∃Tx
     index′ : Fin (∃o tx′)
 open TxInput′ public
+unquoteDecl DecEqₜₓᵢ = DERIVE DecEq [ quote TxInput′ , DecEqₜₓᵢ ]
 
 variable
   i i′ o o′ : ℕ
