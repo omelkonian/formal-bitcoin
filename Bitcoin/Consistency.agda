@@ -12,6 +12,7 @@ open import Prelude.Functor
 open import Prelude.ToN
 open import Prelude.Ord
 open import Prelude.InferenceRules
+open import Prelude.FromList
 
 open import Bitcoin.Crypto
 open import Bitcoin.BasicTypes

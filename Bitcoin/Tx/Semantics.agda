@@ -1,11 +1,11 @@
 ------------------------------------------------------------------------
 -- Semantics of transactions.
 ------------------------------------------------------------------------
-{-# OPTIONS --allow-unsolved-metas #-}
 module Bitcoin.Tx.Semantics where
 
 open import Prelude.Init
 open import Prelude.ToN
+open import Prelude.DecEq
 open import Prelude.Ord
 
 open import Bitcoin.BasicTypes
@@ -81,8 +81,6 @@ module Example4 where
                      ; outputs = V.[ Ctx 1 , (record { value = v₁ ; validator = ƛ (versig ks′ [ 0F ]) }) ]
                      ; absLock = t₁ })
 
-  T₀↝T₁ : T₀ , 0F , t₀ ↝[ v₀ ] T₁ , 0F , t₁
-  T₀↝T₁ = {!!}
-
-  T₀↝T₁′ : T₀ , 0F , t₀ ↝[ v₀ ] T₁′ , 0F , t₁
-  T₀↝T₁′ = {!!}
+  postulate
+    T₀↝T₁ : T₀ , 0F , t₀ ↝[ v₀ ] T₁ , 0F , t₁
+    T₀↝T₁′ : T₀ , 0F , t₀ ↝[ v₀ ] T₁′ , 0F , t₁
