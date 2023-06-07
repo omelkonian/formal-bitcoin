@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------
 module Bitcoin.Consistency where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.Lists
 open import Prelude.DecEq
@@ -12,7 +12,7 @@ open import Prelude.Functor
 open import Prelude.ToN
 open import Prelude.Ord
 open import Prelude.InferenceRules
-open import Prelude.FromList
+open import Prelude.FromList; open import Prelude.ToList
 
 open import Bitcoin.Crypto
 open import Bitcoin.BasicTypes
@@ -22,7 +22,7 @@ open import Bitcoin.Tx.Crypto
 open import Bitcoin.Tx.Semantics
 
 -- Blockchain
-Blockchain : Set
+Blockchain : Type
 Blockchain = List TimedTx -- in reverse chronological order, in contrast to the paper
 
 variable txs txs′ : Blockchain
@@ -32,35 +32,38 @@ txSet = fromList
 
 match : Blockchain → HashId → Set⟨ TimedTx ⟩
 match []                _   = ∅
-match ((tx at t) ∷ txs) tx♯ with tx ♯ ≟ tx♯
-... | no _  = match txs tx♯
-... | yes _ = singleton (tx at t)
-            ∪ match txs tx♯
+match ((tx at t) ∷ txs) tx♯ =
+  if tx ♯ == tx♯ then
+    match txs tx♯
+  else
+    singleton (tx at t) ∪ match txs tx♯
 
 -- UTXO: Unspent transaction outputs.
 -- (0) EUTXO-like set-theoretic definition, based on txInputs instead of outputs for convenience
 UTXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
-UTXOₜₓ ∃tx@(_ , o , tx) = fromList $ map (λ i → (∃tx ♯) at i) (upTo o)
+UTXOₜₓ ∃tx@(_ , o , tx) = fromList $ (∃tx ♯) at_ <$> upTo o
 
 STXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
-STXOₜₓ (_ , _ , tx) = fromList (V.toList $ inputs tx)
+STXOₜₓ (_ , _ , tx) = tx .inputs ∙toList ∙fromList
 
 UTXO : Blockchain → Set⟨ TxInput ⟩
-UTXO []              = ∅
-UTXO (tx at _ ∷ txs) = UTXO txs ─ STXOₜₓ tx
-                     ∪ UTXOₜₓ tx
+UTXO = λ where
+  []              → ∅
+  (tx at _ ∷ txs) → UTXO txs ─ STXOₜₓ tx
+                  ∪ UTXOₜₓ tx
 
 -- Consistent update.
 latestTime : Blockchain → Time
-latestTime []             = 0
-latestTime ((_ at t) ∷ _) = t
+latestTime = λ where
+  []             → 0
+  ((_ at t) ∷ _) → t
 
-record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
+record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Type where
   field
     -- well-formedness conditions
 
     inputsUnique :
-      Unique (V.toList (inputs tx))
+      Unique $ tx .inputs ∙toList
 
     singleMatch : ∀ (i : Fin i) →
       let
@@ -70,35 +73,37 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
 
     noOutOfBounds : ∀ (i : Fin i) →
       let
-        (Tᵢ♯ at oᵢ)              = tx ‼ⁱ i
+        (_ at oᵢ)                = tx ‼ⁱ i
         (((_ , o , _) at _) , _) = singleMatch i
       in
         oᵢ < o
 
-    -------------------------------------------------------
+  private
+    getI : ∀ (i : Fin i) → let i′ , o′ , _ = singleMatch i .proj₁ .transaction in
+      Tx i′ o′ × Fin o′ × Time × Value
+    getI i =
+      let
+        (_ at oᵢ) = tx ‼ⁱ i
+        (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
+        oᵢ = F.fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
+        vᵢ = (Tᵢ ‼ᵒ oᵢ) ∙value
+      in
+        Tᵢ , oᵢ , tᵢ , vᵢ
 
+  field
     -- (1)
     inputs∈UTXO : ∀ (i : Fin i) →
       tx ‼ⁱ i ∈ˢ UTXO txs
 
     -- (2)
-    inputsRedeemable : ∀ (i : Fin i) →
-      let
-        (_ at oᵢ) = tx ‼ⁱ i
-        (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-        oᵢ = F.fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
-        vᵢ = value (proj₂ (Tᵢ ‼ᵒ oᵢ))
-      in
+    inputsRedeemable : ∀ (i : Fin i) → let Tᵢ , oᵢ , tᵢ , vᵢ = getI i in
         Tᵢ , oᵢ , tᵢ ↝[ vᵢ ] tx , i , t
 
     -- (3)
     valuesPreserved :
       let
-        ins  = V.tabulate λ i → let (_ at oᵢ) = tx ‼ⁱ i
-                                    (((_ , o , Tᵢ) at tᵢ) , _) = singleMatch i
-                                    oᵢ = F.fromℕ< {m = oᵢ} {n = o} (noOutOfBounds i)
-                                in value (proj₂ (Tᵢ ‼ᵒ oᵢ))
-        outs = V.map (value ∘ proj₂) (outputs tx)
+        ins  = V.tabulate λ i → let Tᵢ , oᵢ , _ = getI i in (Tᵢ ‼ᵒ oᵢ) ∙value
+        outs = _∙value <$> tx .outputs
       in
         V.sum ins ≥ V.sum outs
 
@@ -107,7 +112,7 @@ record _▷_,_ (txs : Blockchain) (tx : Tx i o) (t : Time) : Set where
       t ≥ latestTime txs
 
 -- Consistency.
-data ConsistentBlockchain : Blockchain → Set where
+data ConsistentBlockchain : Blockchain → Type where
   -- ∎_∶-_  : (tx : Tx 0 o)
   --        → Coinbase tx
   --        → ConsistentBlockchain [ (_ , _ , tx) at 0 ]
@@ -120,7 +125,7 @@ data ConsistentBlockchain : Blockchain → Set where
 
 -- (1) Non-constructive/indirect formulation of the UTXO set, via describing when an output is unspent.
 Unspent : (b : Blockchain) → (i : Index b) → let (_ , o , Tᵢ) at tᵢ = b ‼ i in
-        ∀ (j : Fin o) → Set
+        ∀ (j : Fin o) → Type
 Unspent b i j =
   let (_ , o , Tᵢ) at tᵢ = b ‼ i in
   ∀ (i′ : Index b) (leq : i′ F.≤ i)  → let (i′ , _ , Tᵢ′) at tᵢ′ = b ‼ i′ in
@@ -129,7 +134,7 @@ Unspent b i j =
 
 Unspent-∷ : ∀ {tx t} {b : Blockchain} {i : Index b} → let (_ , o , Tᵢ) at tᵢ = b ‼ i in ∀ {j : Fin o} →
   ∙ Unspent b i j
-  ∙ (((Tᵢ atᵒ j) V.Mem.∉ ∃inputs tx)
+  ∙ (((Tᵢ ♯at j) V.Mem.∉ ∃inputs tx)
     ─────────────────────────────────────────────────────────
     Unspent ((tx at t) ∷ b) (fsuc i) j)
 Unspent-∷ {tx = tx} unsp in∉ 0F 0≤ j′ (v , record {input~output = io})
@@ -139,7 +144,7 @@ Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
 
 --
 
-∃Unspent : (b : Blockchain) → ∃TxOutput → Set
+∃Unspent : (b : Blockchain) → ∃TxOutput → Type
 ∃Unspent b txo =
   Σ (Index b) λ i →
     let (_ , o , Tᵢ) at _ = b ‼ i in
@@ -157,7 +162,7 @@ Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
   ∙ ConsistentBlockchain ((tx at t) ∷ b)
   → (wit : ∃Unspent b o)
   → let i , j , _ = wit; (_ , _ , Tᵢ) at _ = b ‼ i in
-  ∙ (Tᵢ atᵒ j V.Mem.∉ ∃inputs tx)
+  ∙ (Tᵢ ♯at j V.Mem.∉ ∃inputs tx)
     ─────────────────────────────────────────────────────────
     ∃Unspent ((tx at t) ∷ b) o
 ∃Unspent-∷ vb (i , j , p , o≡) in∉ = fsuc i , j , Unspent-∷ p in∉ , o≡
@@ -178,7 +183,7 @@ stxo {tx = i , _ , .tx} (_ ⊕ tx ∶- p)
         Tᵢ ‼ᵒ oᵢ
 
 utxoₜₓ : ∃Tx → Set⟨ ∃TxOutput ⟩
-utxoₜₓ (_ , _ , tx) = fromList (V.toList $ outputs tx)
+utxoₜₓ (_ , _ , tx) = tx .outputs ∙toList ∙fromList
 
 utxo : (b : Blockchain) → ConsistentBlockchain b → Set⟨ ∃TxOutput ⟩
 utxo .[] ∎ = ∅
@@ -188,7 +193,7 @@ utxo (.((_ , _ , tx) at _) ∷ b) vb₀@(vb ⊕ tx ∶- _)
 
 -- T0D0: prove equivalence between (1) and (2)
 
--- Unspent : (b : Blockchain) → (i : Index b) → let (_ , o , Tᵢ) at tᵢ = b ‼ i in ∀ (j : Fin o) → Set
+-- Unspent : (b : Blockchain) → (i : Index b) → let (_ , o , Tᵢ) at tᵢ = b ‼ i in ∀ (j : Fin o) → Type
 -- utxo : (b : Blockchain) → ConsistentBlockchain b → Set⟨ ∃TxOutput ⟩
 -- UTXO : Blockchain → Set⟨ TxInput ⟩
 
@@ -209,7 +214,7 @@ UTXO→Unspent {x ∷ b} {i} {j} p = {!!}
 -}
 
 {- WIP
--- record BlockchainTx : Set where
+-- record BlockchainTx : Type where
 --   field
 --     b : Blockchain
 --     i : Index b

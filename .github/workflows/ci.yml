@@ -1,17 +1,17 @@
 name: CI
 on:
-  # schedule: [{cron: '0 0 * * *'}]
+  schedule: [{cron: '0 0 * * *'}]
   push: {branches: master}
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.1
+      - uses: actions/checkout@v3
       - uses: omelkonian/setup-agda@master
         with:
-          agda-version: 2.6.2.1
-          stdlib-version: 1.7
-          libraries: omelkonian/formal-prelude#2770
+          agda-version: 2.6.3
+          stdlib-version: 1.7.2
+          libraries: omelkonian/formal-prelude#e468854
           main: Bitcoin
           token: ${{ secrets.GITHUB_TOKEN }}
           measure-typechecking: true
