@@ -38,8 +38,8 @@ ver : KeyPair → HashId → Tx i o → Fin i → Bool
 ver k σ tx i = VER k σ (μ tx i)
 
 ver⋆ : List KeyPair → List HashId → Tx i o → Fin i → Bool
-ver⋆ _         []      _ _ = true
-ver⋆ []        _       _ _ = false
+ver⋆ []        _       _ _ = true
+ver⋆ _         []      _ _ = false
 ver⋆ (k ∷ ks) (σ ∷ σs) T i =
   if ver k σ T i then ver⋆ ks σs T i else ver⋆ (k ∷ ks) σs T i
 
