@@ -15,40 +15,41 @@ open import Bitcoin.Crypto
 open import Bitcoin.Tx.Base
 open import Bitcoin.Script.Base
 
+-- Constructing transaction inputs
+_♯at_ : Tx i o → Fin o → TxInput
+tx ♯at i = (tx ♯) at toℕ i
+
+hashTxⁱ : TxInput′ → TxInput
+hashTxⁱ ((_ , _ , tx) at i) = tx ♯at i
+
 -- Remove witnesses (i.e. adhere to SegregatedWitness feature of Bitcoin)
-wit⊥ : ∀ {n} → Vec ∃Witness n
-wit⊥ = replicate (_ , [])
+wit⊥ : Vec ∃Witness n
+wit⊥ = replicate (-, [])
 
 wit→⊥ : Tx i o → Tx i o
 wit→⊥ tx = record tx { wit = wit⊥ }
 
--- Sign a transaction
+-- Transaction signatures
 μ : Tx i o → Fin i → Tx i o
-μ {i = suc _} tx i′ = record tx { wit = wit⊥ [ 0F ]≔ (_ , [ + (toℕ i′) ]) }
+μ {i = suc _} tx i′ = record tx { wit = wit⊥ [ 0F ]≔ (-, [ + (toℕ i′) ]) }
 
 sig : List KeyPair → Tx i o → Fin i → Tx i o
 sig ks tx i = record tx
-  { wit = tx .wit [ i ]≔ (_ , fromList (flip SIG (μ tx i) <$> ks)) }
+  { wit = tx .wit [ i ]≔ (-, fromList (flip SIG (μ tx i) <$> ks)) }
 
-sig⋆ : Vec (List KeyPair) i → Tx i o → Tx i o
-sig⋆ kss tx = record tx
-  { wit = (λ i → _ , (fromList (flip SIG (μ tx i) <$> lookup kss i))) <$> allFin _ }
-
--- m-of-n multi-signature scheme
 ver : KeyPair → HashId → Tx i o → Fin i → Bool
 ver k σ tx i = VER k σ (μ tx i)
+
+-- m-of-n multi-signature scheme
+sig⋆ : Vec (List KeyPair) i → Tx i o → Tx i o
+sig⋆ kss tx = record tx
+  { wit = (λ i → -, fromList (flip SIG (μ tx i) <$> lookup kss i)) <$> allFin _ }
 
 ver⋆ : List KeyPair → List HashId → Tx i o → Fin i → Bool
 ver⋆ _        []       _ _ = true
 ver⋆ []       (_ ∷ _)  _ _ = false
 ver⋆ (k ∷ ks) (σ ∷ σs) T i =
   if ver k σ T i then ver⋆ ks σs T i else ver⋆ ks (σ ∷ σs) T i
-
-hashTxⁱ : TxInput′ → TxInput
-hashTxⁱ (tx at i) = (tx ♯) at (toℕ i)
-
-_♯at_ : Tx i o → Fin o → TxInput
-tx ♯at i = (tx ♯) at toℕ i
 
 ver⋆sig≡ : ∀ {k} (t : Tx i o) (j : Fin i) → T $ ver⋆ L.[ k ] L.[ SIG k (μ t j) ] t j
 ver⋆sig≡ {k = k} t j rewrite if-eta $ ver k (SIG k (μ t j)) t j = VERSIG≡
@@ -61,11 +62,11 @@ module Example1
   σp = SIG kᵃ (μ t 0F)
   σq = SIG kᵇ (μ t 0F)
 
-  ks  = List KeyPair ∋ kᶜ ∷ kᵇ ∷ kᵃ ∷ []
-  σs  = List HashId  ∋ σq ∷ σp ∷ []
-  σs′ = List HashId  ∋ σp ∷ σq ∷ []
+  open import Prelude.Nary
 
-  open import Prelude.General
+  ks  = List KeyPair ∋ ⟦ kᶜ , kᵇ , kᵃ ⟧
+  σs  = List HashId  ∋ ⟦ σq , σp ⟧
+  σs′ = List HashId  ∋ ⟦ σp , σq ⟧
 
   -- ** using equational reasoning
 
@@ -77,23 +78,23 @@ module Example1
         ver⋆ ks σs t 0F
       ≡⟨⟩
         (if VER kᶜ σq (μ t 0F) then
-          ver⋆ (kᵇ ∷ kᵃ ∷ []) (σp ∷ []) t 0F
+          ver⋆ ⟦ kᵇ , kᵃ ⟧ ⟦ σp ⟧ t 0F
         else
-          ver⋆ (kᵇ ∷ kᵃ ∷ []) (σq ∷ σp ∷ []) t 0F)
+          ver⋆ ⟦ kᵇ , kᵃ ⟧ ⟦ σq , σp ⟧ t 0F)
       ≡⟨ if-false $ ¬T⇒false $ VERSIG≢ kᶜ≢kᵇ ⟩
-        ver⋆ (kᵇ ∷ kᵃ ∷ []) σs t 0F
+        ver⋆ ⟦ kᵇ , kᵃ ⟧ σs t 0F
       ≡⟨⟩
         (if VER kᵇ σq (μ t 0F) then
-          ver⋆ (kᵃ ∷ []) (σp ∷ []) t 0F
+          ver⋆ ⟦ kᵃ ⟧ ⟦ σp ⟧ t 0F
         else
-          ver⋆ (kᵃ ∷ []) (σq ∷ σp ∷ []) t 0F)
+          ver⋆ ⟦ kᵃ ⟧ ⟦ σq , σp ⟧ t 0F)
       ≡⟨ if-true $ T⇒true VERSIG≡ ⟩
-        ver⋆ (kᵃ ∷ []) (σp ∷ []) t 0F
+        ver⋆ ⟦ kᵃ ⟧ ⟦ σp ⟧ t 0F
       ≡⟨⟩
         (if VER kᵃ σp (μ t 0F) then
           ver⋆ [] [] t 0F
         else
-          ver⋆ [] (σp ∷ []) t 0F)
+          ver⋆ [] ⟦ σp ⟧ t 0F)
       ≡⟨ if-true $ T⇒true VERSIG≡ ⟩
         ver⋆ [] [] t 0F
       ≡⟨⟩
@@ -105,11 +106,11 @@ module Example1
     $ begin
         ver⋆ ks σs′ t 0F
       ≡⟨ if-false $ ¬T⇒false $ VERSIG≢ kᶜ≢kᵃ ⟩
-        ver⋆ (kᵇ ∷ kᵃ ∷ []) (σp ∷ σq ∷ []) t 0F
+        ver⋆ ⟦ kᵇ , kᵃ ⟧ ⟦ σp , σq ⟧ t 0F
       ≡⟨ if-false $ ¬T⇒false $ VERSIG≢ kᵇ≢kᵃ ⟩
-        ver⋆ (kᵃ ∷ []) (σp ∷ σq ∷ []) t 0F
+        ver⋆ ⟦ kᵃ ⟧ ⟦ σp , σq ⟧ t 0F
       ≡⟨ if-true $ T⇒true VERSIG≡ ⟩
-        ver⋆ [] (σq ∷ []) t 0F
+        ver⋆ [] ⟦ σq ⟧ t 0F
       ≡⟨⟩
         false
       ∎

@@ -72,19 +72,14 @@ unquoteDecl DecEqᵇˢ = DERIVE DecEq [ quote BitcoinScript , DecEqᵇˢ ]
 ∃BitcoinScript = ∃[ ctx ] BitcoinScript ctx
 
 -- operators' precedence
-infix  15 _`+_
-infix  15 _`-_
-infix  14 _`=_
-infix  14 _`<_
-infixr 13 _`∨_
-infixr 13 _`∧_
-infix  12 `if_then_else_
-infix  12 absAfter_⇒_
-infix  12 relAfter_⇒_
+infix  15 _`+_ _`-_
+infix  14 _`=_ _`<_
+infixr 13 _`∨_ _`∧_
+infix  12 `if_then_else_ absAfter_⇒_ relAfter_⇒_
 infix  11 ƛ_
 
 _ : BitcoinScript 2
-_ = ƛ versig [] [ 0F ] `∧ (hash (var 1F) `= hash (var 0F))
+_ = ƛ versig [] [ 0F ] `∧ hash (var 1F) `= hash (var 0F)
 
 -- Combining scripts
 mapFin : ∀ {n m} → n ≤ m → Script n ty → Script m ty

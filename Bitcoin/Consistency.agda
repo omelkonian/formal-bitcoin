@@ -29,7 +29,7 @@ txSet : Blockchain → Set⟨ TimedTx ⟩
 txSet = fromList
 
 match : Blockchain → HashId → Set⟨ TimedTx ⟩
-match []                _   = ∅
+match []                              _   = ∅
 match ((∃tx@(_ , _ , tx) at t) ∷ txs) tx♯ =
   if tx ♯ == tx♯ then
     singleton (∃tx at t) ∪ match txs tx♯

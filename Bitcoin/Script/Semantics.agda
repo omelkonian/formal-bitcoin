@@ -13,6 +13,7 @@ open import Prelude.DecEq
 open import Prelude.Ord
 open import Prelude.Functor
 open import Prelude.Applicative
+open import Prelude.InferenceRules
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -61,7 +62,6 @@ _,_⊨_ : (tx : Tx i o) (i : Fin i) → BitcoinScript ctx → ⦃ ctx ≡ (tx �
 _,_⊭_ : (tx : Tx i o) (i : Fin i) → BitcoinScript ctx → ⦃ ctx ≡ (tx ‼ʷ i) .proj₁ ⦄ → Type
 tx , i ⊭ e = ¬ (tx , i ⊨ e)
 
-open import Prelude.InferenceRules
 ⊨-elim : (tx : Tx i o) (i : Fin i) (e : BitcoinScript ctx)
          ⦃ eq eq′ : ctx ≡ (tx ‼ʷ i) .proj₁ ⦄ →
   ∙ (tx , i ⊨ e) ⦃ eq ⦄

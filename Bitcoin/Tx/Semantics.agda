@@ -47,10 +47,7 @@ open _,_,_↝[_]_,_,_ public
 _,_,_↛_,_,_ : Tx i o → Fin o → Time → Tx i′ o′ → Fin i′ → Time → Type
 tx , i , t ↛ tx′ , j , t′ = ¬ (∃[ v ] (tx , i , t ↝[ v ] tx′ , j , t′))
 
-module Example3
-  {k k′ : KeyPair}
-  {v₀ v₁ : Value}
-  where
+module Example3 {k k′ : KeyPair} {v₀ v₁ : Value} where
 
   open Nat using (m≤m+n)
 
@@ -111,10 +108,7 @@ module Example3
     ; satisfiesRelLock = m≤m+n _ 4 , s≤s (s≤s z≤n)
     }
 
-module Example4
-  {k k₂ : KeyPair}
-  {t t′ : Time} (t≤t′ : t ≤ t′)
-  where
+module Example4 {k k₂ : KeyPair} {t t′ : Time} (t≤t′ : t ≤ t′) where
 
   open import Prelude.General
 
