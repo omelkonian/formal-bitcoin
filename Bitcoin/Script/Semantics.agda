@@ -53,20 +53,42 @@ infix 8 ⟦_⟧′_
 ⟦ ƛ x ⟧ ρ = M.fromMaybe false (⟦ x ⟧′ ρ)
 
 -- Script verification
-infix 5 _,_⊨_
+infix 0 _,_⊨_ _,_⊭_
+
 _,_⊨_ : (tx : Tx i o) (i : Fin i) → BitcoinScript ctx → ⦃ ctx ≡ (tx ‼ʷ i) .proj₁ ⦄ → Type
 (tx , i ⊨ e) ⦃ refl ⦄ = T (⟦ e ⟧ record { tx = tx ; ix = i ; val = (tx ‼ʷ i) .proj₂ })
 
-ex2 : ∀ {σ s h : ℤ} {k : KeyPair} {txi : TxInput}
-  {i} {is : Vec TxInput i} {ws : Vec ∃Witness i}
-  {rs : Vec Time (suc i)}
-  {o} {os : Vec ∃TxOutput o} {t : Time}
-  {h≡ : s ♯ ≡ h} →
-  let t = record { inputs = txi ∷ is
-                 ; wit = (2 , σ ∷ s ∷ []) ∷ ws
-                 ; relLock = rs
-                 ; outputs = os
-                 ; absLock = t } in
-  {σ≡ : ver⋆ [ k ] [ σ ] t 0F ≡ true} →
-  t , 0F ⊨ (ƛ versig [ k ] [ 0F ] `∧ (hash (var {n = 2} 1F) `= ` h))
-ex2 {h = h} {h≡ = h≡} {σ≡ = σ≡} rewrite h≡ | σ≡ | ≟-refl h = tt
+_,_⊭_ : (tx : Tx i o) (i : Fin i) → BitcoinScript ctx → ⦃ ctx ≡ (tx ‼ʷ i) .proj₁ ⦄ → Type
+tx , i ⊭ e = ¬ (tx , i ⊨ e)
+
+open import Prelude.InferenceRules
+⊨-elim : (tx : Tx i o) (i : Fin i) (e : BitcoinScript ctx)
+         ⦃ eq eq′ : ctx ≡ (tx ‼ʷ i) .proj₁ ⦄ →
+  ∙ (tx , i ⊨ e) ⦃ eq ⦄
+  ∙ (tx , i ⊭ e) ⦃ eq′ ⦄
+    ────────────────────
+    ⊥
+⊨-elim tx i e ⦃ refl ⦄ ⦃ refl ⦄ p ¬p = ¬p p
+
+module Example2
+  {σ s : HashId} {t k txi}
+  {i} {is : Vec TxInput i} {ws} {rs}
+  {o} {os : Vec ∃TxOutput o}
+  (let h = s ♯
+       T = record { inputs = txi ∷ is
+                  ; wit = (2 , σ ∷ s ∷ []) ∷ ws
+                  ; relLock = rs
+                  ; outputs = os
+                  ; absLock = t })
+  (σ≡ : σ ≡ SIG k (μ T 0F))
+  where
+  open import Prelude.General
+  open ≡-Reasoning
+
+  _ : T , 0F ⊨ ƛ versig [ k ] [ 0F ] `∧ (hash (var 1F) `= ` h)
+  _ rewrite begin ver⋆ [ k ] [ σ ] T 0F ≡⟨ if-eta _ ⟩
+                  VER k σ _             ≡⟨ cong (λ ◆ → VER _ ◆ _) σ≡ ⟩
+                  VER k (SIG k _) _     ≡⟨ T⇒true VERSIG≡ ⟩
+                  true                  ∎
+          | ≟-refl h
+          = tt

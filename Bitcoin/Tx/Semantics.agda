@@ -42,40 +42,134 @@ record _,_,_↝[_]_,_,_ (tx : Tx i o) (i : Fin o) (t : Time)
         (t′ ≥ t)
       × (t′ ∸ t ≥ tx′ ‼ʳ j)
 
+open _,_,_↝[_]_,_,_ public
+
 _,_,_↛_,_,_ : Tx i o → Fin o → Time → Tx i′ o′ → Fin i′ → Time → Type
 tx , i , t ↛ tx′ , j , t′ = ¬ (∃[ v ] (tx , i , t ↝[ v ] tx′ , j , t′))
 
-module Example4 where
+module Example3
+  {k k′ : KeyPair}
+  {v₀ v₁ : Value}
+  where
 
-  postulate
-    ks ks′ : List KeyPair
-    v₀ v₁ : Value
-    t₀ t₁ abs₀ rel₀ : Time
+  open Nat using (m≤m+n)
+
+  record Date : Type where
+    constructor _/_/_
+    field day month year  : ℕ
+
+  infix 10 date∶_
+  date∶_ : Date → Time
+  date∶ date = year * 365 + month * 30 + day
+    where open Date date
+
+  t₀ = date∶ 2 / 1 / 2017
+  t₁ = date∶ 6 / 1 / 2017
 
   T₀ : Tx 0 1
   T₀ = record
     { inputs  = []
     ; wit     = []
     ; relLock = []
-    ; outputs = V.[ 1 , (v₀ locked-by ƛ (versig ks [ 0F ])) ]
-    ; absLock = abs₀ }
+    ; outputs = V.[ 1 , v₀ locked-by ƛ versig [ k ] [ 0F ] ]
+    ; absLock = t₀ }
 
   T₁ : Tx 1 1
-  T₁ = sig⋆ V.[ ks ] record
+  T₁ = sig⋆ V.[ [ k ] ] record
     { inputs  = V.[ (T₀ ♯) at 0 ]
     ; wit     = wit⊥
-    ; relLock = V.[ rel₀ ]
-    ; outputs = V.[ 1 , (v₁ locked-by ƛ (versig ks′ [ 0F ])) ]
+    ; relLock = V.[ 0 ]
+    ; outputs = V.[ 1 , v₁ locked-by ƛ versig [ k′ ] [ 0F ] ]
     ; absLock = t₁ }
 
   T₁′ : Tx 1 1
-  T₁′ = sig⋆ V.[ ks′ ] record
-    { inputs = V.[ (T₀ ♯) at 0 ]
+  T₁′ = sig⋆ V.[ [ k ] ] record
+    { inputs  = V.[ (T₀ ♯) at 0 ]
     ; wit     = wit⊥
-    ; relLock = V.[ 1 ]
-    ; outputs = V.[ 1 , (v₁ locked-by ƛ (versig ks′ [ 0F ])) ]
-    ; absLock = t₁ }
+    ; relLock = V.[ date∶ 2 / 0 / 0 ]
+    ; outputs = V.[ 1 , v₁ locked-by ƛ versig [ k′ ] [ 0F ] ]
+    ; absLock = date∶ 5 / 1 / 2017 }
 
-  postulate
-    T₀↝T₁ : T₀ , 0F , t₀ ↝[ v₀ ] T₁ , 0F , t₁
-    T₀↝T₁′ : T₀ , 0F , t₀ ↝[ v₀ ] T₁′ , 0F , t₁
+  T₀↝T₁ : T₀ , 0F , t₀ ↝[ v₀ ] T₁ , 0F , t₁
+  -- T₀↝T₁ = λ where
+  --   .input~output     → refl
+  --   .scriptValidates  → QED
+  T₀↝T₁ = record
+    { input~output     = refl
+    ; scriptValidates  = ver⋆sig≡ T₁ 0F
+    ; value≡           = refl
+    ; satisfiesAbsLock = ≤-refl
+    ; satisfiesRelLock = m≤m+n _ 4 , z≤n
+    }
+
+  T₀↝T₁′ : T₀ , 0F , t₀ ↝[ v₀ ] T₁′ , 0F , t₁
+  T₀↝T₁′ = record
+    { input~output     = refl
+    ; scriptValidates  = ver⋆sig≡ T₁′ 0F
+    ; value≡           = refl
+    ; satisfiesAbsLock = m≤m+n _ 1
+    ; satisfiesRelLock = m≤m+n _ 4 , s≤s (s≤s z≤n)
+    }
+
+module Example4
+  {k k₂ : KeyPair}
+  {t t′ : Time} (t≤t′ : t ≤ t′)
+  where
+
+  open import Prelude.General
+
+  T₁′ : Tx 0 1
+  T₁′ = record
+    { inputs  = []
+    ; wit     = []
+    ; relLock = []
+    ; outputs = V.[ 1 , 1 locked-by ƛ versig [ k ] [ 0F ] ]
+    ; absLock = t }
+
+  T₂′ : Tx 0 1
+  T₂′ = record
+    { inputs  = []
+    ; wit     = []
+    ; relLock = []
+    ; outputs = V.[ 1 , 2 locked-by ƛ versig [ k ] [ 0F ] ]
+    ; absLock = t }
+
+  T₃′ : Tx 2 1
+  T₃′ = sig⋆ ([ k ] ∷ [ k ] ∷ []) record
+    { inputs  = (T₁′ ♯) at 0 ∷ (T₂′ ♯) at 0 ∷ []
+    ; wit     = wit⊥
+    ; relLock = 0            ∷ 0            ∷ []
+    ; outputs = V.[ 1 , 3 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+    ; absLock = t′ }
+
+  T₁′↝T₃′ : T₁′ , 0F , t ↝[ 1 ] T₃′ , 0F , t′
+  T₁′↝T₃′ = record
+    { input~output     = refl
+    ; scriptValidates  = ver⋆sig≡ T₃′ 0F
+    ; value≡           = refl
+    ; satisfiesAbsLock = ≤-refl
+    ; satisfiesRelLock = t≤t′ , z≤n
+    }
+
+  T₂′↝T₃′ : T₂′ , 0F , t ↝[ 2 ] T₃′ , 1F , t′
+  T₂′↝T₃′ = record
+    { input~output     = refl
+    ; scriptValidates  = ver⋆sig≡ T₃′ 1F
+    ; value≡           = refl
+    ; satisfiesAbsLock = ≤-refl
+    ; satisfiesRelLock = t≤t′ , z≤n
+    }
+
+  T₃″ : Tx 2 1
+  T₃″ = record T₃′ {wit = T₃′ ‼ʷ 0F ∷ (-, V.[ SIG k (μ T₃′ 0F) ]) ∷ []}
+
+  T₂′↛T₃″ : T₂′ , 0F , t ↛ T₃″ , 1F , t′
+  T₂′↛T₃″ (_ , record {scriptValidates = ver≡})
+    = ⊨-elim T₃″ 1F _ ver≡ $ false⇒¬T $
+    begin
+      ver⋆ [ k ] [ SIG k (μ T₃′ 0F) ] T₃″ 1F
+    ≡⟨ if-eta _ ⟩
+      VER k (SIG k _) _
+    ≡⟨ ¬T⇒false $ VERSIG≢′ (λ ()) ⟩
+      false
+    ∎ where open ≡-Reasoning

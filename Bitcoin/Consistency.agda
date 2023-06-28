@@ -16,10 +16,8 @@ open import Prelude.FromList; open import Prelude.ToList
 
 open import Bitcoin.Crypto
 open import Bitcoin.BasicTypes
-open import Bitcoin.Script.Base
-open import Bitcoin.Tx.Base
-open import Bitcoin.Tx.Crypto
-open import Bitcoin.Tx.Semantics
+open import Bitcoin.Script
+open import Bitcoin.Tx
 
 -- Blockchain
 Blockchain : Type
@@ -32,16 +30,16 @@ txSet = fromList
 
 match : Blockchain → HashId → Set⟨ TimedTx ⟩
 match []                _   = ∅
-match ((tx at t) ∷ txs) tx♯ =
+match ((∃tx@(_ , _ , tx) at t) ∷ txs) tx♯ =
   if tx ♯ == tx♯ then
-    match txs tx♯
+    singleton (∃tx at t) ∪ match txs tx♯
   else
-    singleton (tx at t) ∪ match txs tx♯
+    match txs tx♯
 
 -- UTXO: Unspent transaction outputs.
 -- (0) EUTXO-like set-theoretic definition, based on txInputs instead of outputs for convenience
 UTXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
-UTXOₜₓ ∃tx@(_ , o , tx) = fromList $ (∃tx ♯) at_ <$> upTo o
+UTXOₜₓ (_ , o , tx) = fromList $ (tx ♯) at_ <$> upTo o
 
 STXOₜₓ : ∃Tx → Set⟨ TxInput ⟩
 STXOₜₓ (_ , _ , tx) = tx .inputs ∙toList ∙fromList
@@ -121,7 +119,7 @@ data ConsistentBlockchain : Blockchain → Type where
   _⊕_∶-_ : ConsistentBlockchain txs
          → (tx : Tx i o)
          → txs ▷ tx , t
-         → ConsistentBlockchain (((_ , _ , tx) at t) ∷ txs)
+         → ConsistentBlockchain (((-, -, tx) at t) ∷ txs)
 
 -- (1) Non-constructive/indirect formulation of the UTXO set, via describing when an output is unspent.
 Unspent : (b : Blockchain) → (i : Index b) → let (_ , o , Tᵢ) at tᵢ = b ‼ i in
@@ -169,7 +167,7 @@ Unspent-∷ unsp _ (fsuc i′) (s≤s leq) j′ p
 
 -- (2) Alternative set-theoretic/constructive formulation of the UTXO set, similar to the one in EUTXO.
 stxo : ∀ {tx b t} → ConsistentBlockchain ((tx at t) ∷ b) → List ∃TxOutput
-stxo {tx = i , _ , .tx} (_ ⊕ tx ∶- p)
+stxo {tx = i , _ , _} (_ ⊕ tx ∶- p)
   = map f (allFin i)
   module ∣stxo∣ where
     f : Fin i → ∃TxOutput

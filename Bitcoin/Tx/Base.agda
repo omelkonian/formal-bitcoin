@@ -17,7 +17,7 @@ record TxInput : Type where
 open TxInput public
 unquoteDecl DecEqᵢ = DERIVE DecEq [ quote TxInput , DecEqᵢ ]
 
-infix 0 _locked-by_
+infix 5 _locked-by_
 record TxOutput (ctx : ScriptContext) : Type where
   constructor _locked-by_
   field value     : Value

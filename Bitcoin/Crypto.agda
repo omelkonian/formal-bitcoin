@@ -5,6 +5,7 @@ module Bitcoin.Crypto where
 
 open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
+open import Prelude.InferenceRules
 
 open import Bitcoin.BasicTypes
 
@@ -17,7 +18,11 @@ unquoteDecl DecEqᵏᵖ = DERIVE DecEq [ quote KeyPair , DecEqᵏᵖ ]
 HashFunction : Type ℓ → Type ℓ
 HashFunction A = A → HashId
 
-private variable A : Type
+private variable
+  A : Type ℓ
+  x x′ : A
+  k k′ : KeyPair
+  σ : HashId
 
 postulate
   -- universal hashing function
@@ -26,4 +31,21 @@ postulate
   -- signing/verifying
   SIG : KeyPair → A → HashId
   VER : KeyPair → HashId → A → Bool
-  VERSIG≡ : ∀ {k : KeyPair} {x : A} → T (VER k (SIG k x) x)
+
+  VERSIG :
+    T (VER k σ x)
+    ═════════════
+    σ ≡ SIG k x
+
+  SIG-injective :
+      (∀ {x : A} → Injective≡ (λ k → SIG k x))
+    × (∀ {k} → Injective≡ (λ (x : A) → SIG k x))
+
+VERSIG≡ : T (VER k (SIG k x) x)
+VERSIG≡ = VERSIG .proj₂ refl
+
+VERSIG≢ : k ≢ k′ → ¬ T (VER k (SIG k′ x) x)
+VERSIG≢ k≢ p = ⊥-elim $ k≢ $ sym $ SIG-injective .proj₁ (VERSIG .proj₁ p)
+
+VERSIG≢′ : x ≢ x′ → ¬ T (VER k (SIG k x) x′)
+VERSIG≢′ x≢ p = ⊥-elim $ x≢ $ SIG-injective .proj₂ (VERSIG .proj₁ p)
