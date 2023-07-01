@@ -1,8 +1,8 @@
 TOTAL: 1m2s
 Bitcoin/BasicTypes: 0m17s
 Bitcoin/Crypto: 0m9s
-Bitcoin/Script/Base: 0m12s
-Bitcoin/Tx/Base: 0m2s
+Bitcoin/Script/Base: 0m11s
+Bitcoin/Tx/Base: 0m3s
 Bitcoin/Tx/Crypto: 0m3s
 Bitcoin/Script/Semantics: 0m1s
 Bitcoin/Script: 0m0s
