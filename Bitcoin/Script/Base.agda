@@ -20,33 +20,36 @@ variable
   ctx ctx′ : ScriptContext
   ty ty′ : ScriptType
 
-data Script : ScriptContext  -- size of the environment/context
-            → ScriptType     -- result type
-            → Type where
+module _ (ctx : ScriptContext) where -- size of the environment/context
+  data Script : ScriptType           -- result type
+              → Type where
 
-  -- Variables
-  var : Fin n → Script n `ℤ
+    -- Variables
+    var : Fin ctx → Script `ℤ
 
-  -- Arithmetic/boolean operations
-  ` : ℤ → Script ctx `ℤ
-  _`+_ _`-_ : Script ctx `ℤ → Script ctx `ℤ → Script ctx `ℤ
-  _`=_ _`<_ : Script ctx `ℤ → Script ctx `ℤ → Script ctx `Bool
+    -- Arithmetic/boolean operations
+    ` : ℤ → Script `ℤ
+    _`+_ _`-_ : Script `ℤ → Script `ℤ → Script `ℤ
+    _`=_ _`<_ : Script `ℤ → Script `ℤ → Script `Bool
 
-  -- Conditional statement
-  `if_then_else_ : Script ctx `Bool → Script ctx ty → Script ctx ty → Script ctx ty
+    -- Conditional statement
+    `if_then_else_ : Script `Bool → Script ty → Script ty → Script ty
 
-  -- Size and hashing
-  ∣_∣ hash : Script ctx `ℤ → Script ctx `ℤ
+    -- Size and hashing
+    ∣_∣ hash : Script `ℤ → Script `ℤ
 
-  -- Signature verification
-  versig : List KeyPair → List (Fin n) → Script n `Bool
+    -- Signature verification
+    versig : List KeyPair → List (Fin ctx) → Script `Bool
 
-  -- Temporal constraints
-  absAfter_⇒_ relAfter_⇒_ : Time → Script ctx ty → Script ctx ty
+    -- Temporal constraints
+    absAfter_⇒_ relAfter_⇒_ : Time → Script ty → Script ty
 
-∃Script = ∃[ ctx ] ∃[ ty ] Script ctx ty
+  infix  15 _`+_ _`-_
+  infix  14 _`=_ _`<_
+  infix  12 `if_then_else_ absAfter_⇒_ relAfter_⇒_
 
 unquoteDecl DecEqˢ = DERIVE DecEq [ quote Script , DecEqˢ ]
+∃Script = ∃[ ctx ] ∃[ ty ] Script ctx ty
 
 -- smart constructors
 `false : Script ctx `Bool
@@ -68,14 +71,9 @@ data BitcoinScript (ctx : ScriptContext) : Type where
   ƛ_ : Script ctx `Bool → BitcoinScript ctx
 
 unquoteDecl DecEqᵇˢ = DERIVE DecEq [ quote BitcoinScript , DecEqᵇˢ ]
-
 ∃BitcoinScript = ∃[ ctx ] BitcoinScript ctx
 
--- operators' precedence
-infix  15 _`+_ _`-_
-infix  14 _`=_ _`<_
 infixr 13 _`∨_ _`∧_
-infix  12 `if_then_else_ absAfter_⇒_ relAfter_⇒_
 infix  11 ƛ_
 
 _ : BitcoinScript 2
@@ -97,8 +95,8 @@ mapFin n≤m (absAfter x ⇒ s)        = absAfter x ⇒ mapFin n≤m s
 mapFin n≤m (relAfter x ⇒ s)        = relAfter x ⇒ mapFin n≤m s
 
 ⋁ : List (∃[ ctx ] Script ctx `Bool) → ∃[ ctx′ ] Script ctx′ `Bool
-⋁ []       = 0 , `true
-⋁ (s ∷ []) = s
+⋁ []    = 0 , `true
+⋁ [ s ] = s
 ⋁ ((n , x) ∷ xs)
   with m , y ← ⋁ xs
   with n ≤? m
@@ -108,5 +106,5 @@ mapFin n≤m (relAfter x ⇒ s)        = relAfter x ⇒ mapFin n≤m s
 ⋀ : List (Script ctx `Bool) → Script ctx `Bool
 -- ⋀ = foldr _`∧_ `true
 ⋀ []       = `true
-⋀ (s ∷ []) = s
+⋀ [ s ]    = s
 ⋀ (s ∷ ss) = s `∧ ⋀ ss

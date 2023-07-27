@@ -15,9 +15,6 @@ record KeyPair : Type where
 open KeyPair public
 unquoteDecl DecEqᵏᵖ = DERIVE DecEq [ quote KeyPair , DecEqᵏᵖ ]
 
-HashFunction : Type ℓ → Type ℓ
-HashFunction A = A → HashId
-
 private variable
   A : Type ℓ
   x x′ : A
@@ -26,7 +23,7 @@ private variable
 
 postulate
   -- universal hashing function
-  _♯ : HashFunction A
+  _♯ : ∀ {A : Type ℓ} → A → HashId
 
   -- signing/verifying
   SIG : KeyPair → A → HashId

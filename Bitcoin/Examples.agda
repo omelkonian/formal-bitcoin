@@ -30,34 +30,30 @@ T₁ = record
   { inputs  = []
   ; wit     = []
   ; relLock = []
-  ; outputs = (1 , 3 locked-by ƛ versig [ k₁ ] [ 0F ])
-            ∷ (1 , 5 locked-by ƛ versig [ k₂ ] [ 0F ])
-            ∷ (1 , 7 locked-by ƛ versig [ k₃ ] [ 0F ])
-            ∷ []
+  ; outputs = [ (1 , 3 locked-by ƛ versig [ k₁ ] [ 0F ])
+              ⨾ (1 , 5 locked-by ƛ versig [ k₂ ] [ 0F ])
+              ⨾ (1 , 7 locked-by ƛ versig [ k₃ ] [ 0F ])
+              ]
   ; absLock = 0 }
 
 T₂ : Tx 2 1
-T₂ = sig⋆ ([ k₂ ] ∷ [ k₃ ] ∷ []) record
-  { inputs  = (T₁ ♯) at 1
-            ∷ (T₁ ♯) at 2
-            ∷ []
+T₂ = sig⋆ [ [ k₂ ] ⨾ [ k₃ ] ] record
+  { inputs  = [ (T₁ ♯) at 1 ⨾ (T₁ ♯) at 2 ]
   ; wit     = wit⊥
-  ; relLock = 0
-            ∷ 0
-            ∷ []
-  ; outputs = V.[ 1 , 10 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+  ; relLock = [ 0           ⨾ 0           ]
+  ; outputs = [ 1 , 10 locked-by ƛ versig [ k₂ ] [ 0F ] ]
   ; absLock = t₂ }
 
 T₃ : Tx 1 1
-T₃ = sig⋆ V.[ [ k₂ ] ] record
-  { inputs  = V.[ (T₁ ♯) at 1 ]
+T₃ = sig⋆ [ [ k₂ ] ] record
+  { inputs  = [ (T₁ ♯) at 1 ]
   ; wit     = wit⊥
-  ; relLock = V.[ 0 ]
-  ; outputs = V.[ 1 , 5 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+  ; relLock = [ 0 ]
+  ; outputs = [ 1 , 5 locked-by ƛ versig [ k₂ ] [ 0F ] ]
   ; absLock = t₃ }
 
 B : Blockchain
-B = (-, -, T₂) at t₂ ∷ (-, -, T₁) at 0 ∷ []
+B = [ (-, -, T₂) at t₂ ⨾ (-, -, T₁) at 0 ]
 
 postulate
   eq1 : (T₁ ♯) ≡ + 1
@@ -70,7 +66,7 @@ postulate
 _≈?ˢ_ : ∀ (x y : Set⟨ TxInput ⟩) → Dec (x ≈ y)
 x ≈?ˢ y = (x ⊆?ˢ y) ×-dec (y ⊆?ˢ x)
 
-b = List TxInput ∋ (T₁ ♯) at 0 ∷ (T₂ ♯) at 0 ∷ []
+b = List TxInput ∋ [ (T₁ ♯) at 0 ⨾ (T₂ ♯) at 0 ]
 
 _ : UTXO B ≈ fromList b
 _ = toWitness {Q = UTXO B ≈?ˢ fromList b} tt
@@ -78,7 +74,7 @@ _ = toWitness {Q = UTXO B ≈?ˢ fromList b} tt
 B₀ : Blockchain
 B₀ = [ (-, -, T₁) at 0 ]
 
-b₀ = List TxInput ∋ (T₁ ♯) at 0 ∷ (T₁ ♯) at 1 ∷ (T₁ ♯) at 2 ∷ []
+b₀ = List TxInput ∋ [ (T₁ ♯) at 0 ⨾ (T₁ ♯) at 1 ⨾ (T₁ ♯) at 2 ]
 
 _ : UTXO B₀ ≈ fromList b₀
 _ = toWitness {Q = UTXO B₀ ≈?ˢ fromList b₀} tt

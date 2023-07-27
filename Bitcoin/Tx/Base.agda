@@ -81,16 +81,16 @@ variable
   -- T T′ : ∃Tx
 
 _‼ⁱ_ : Tx i o → Fin i → TxInput
-tx ‼ⁱ i = V.lookup (tx .inputs) i
+_‼ⁱ_ = V.lookup ∘ inputs
 
 _‼ʷ_ : Tx i o → Fin i → ∃Witness
-tx ‼ʷ i = V.lookup (tx .wit) i
+_‼ʷ_ = V.lookup ∘ wit
 
 _‼ʳ_ : Tx i o → Fin i → Time
-tx ‼ʳ i = V.lookup (tx .relLock) i
+_‼ʳ_ = V.lookup ∘ relLock
 
 _‼ᵒ_ : Tx i o → Fin o → ∃TxOutput
-tx ‼ᵒ i = V.lookup (tx .outputs) i
+_‼ᵒ_ = V.lookup ∘ outputs
 
 -- Coinbase transactions start at time t=0.
 -- Coinbase : Tx 0 o → Type
