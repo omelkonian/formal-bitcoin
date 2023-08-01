@@ -25,10 +25,6 @@ record TxOutput (ctx : ScriptContext) : Type where
 open TxOutput public
 unquoteDecl DecEqₒ = DERIVE DecEq [ quote TxOutput , DecEqₒ ]
 ∃TxOutput = ∃[ ctx ] TxOutput ctx
-_∙value : ∃TxOutput → Value
-_∙value = value ∘ proj₂
-_∙validator : (o : ∃TxOutput) → BitcoinScript (o .proj₁)
-_∙validator = validator ∘ proj₂
 
 Witness : ℕ → Type
 Witness n = Vec HashId n
@@ -104,3 +100,61 @@ record TimedTx : Type where
 open TimedTx public
 
 unquoteDecl DecEqₜₜₓ = DERIVE DecEq [ quote TimedTx , DecEqₜₜₓ ]
+
+-- Accessors.
+open import Prelude.Accessors
+
+-- Value accessor.
+
+unquoteDecl _∙Value _∙value ∙value=_ =
+  genAccessor _∙Value _∙value ∙value=_ (quote Value)
+instance
+  TxOutput∙Value : TxOutput ctx ∙Value
+  TxOutput∙Value = ∙value= value
+
+  ∃TxOutput∙Value : ∃TxOutput ∙Value
+  ∃TxOutput∙Value = ∙value= λ (_ , txo) → txo ∙value
+
+  TxInput′∙Value : TxInput′ ∙Value
+  TxInput′∙Value = ∙value= λ ((_ , _ , T) at o) → (T ‼ᵒ o) ∙value
+
+-- Context accessor.
+
+open import Prelude.Newtype
+≫ScriptContext = newtype ScriptContext
+
+∙ctx=_ : ∀ {A : Type} → (A → ScriptContext) → HasField A _
+∙ctx= f = λ where ._∙ x → mk (f x)
+
+_∙ctx : ∀ {A : Type} → ⦃ HasField A _ ⦄ → (A → ScriptContext)
+_∙ctx = unmk ∘ _∙
+
+instance
+  Script∙Ctx : HasField (BitcoinScript ctx) ≫ScriptContext
+  Script∙Ctx {ctx = ctx} = ∙ctx= const ctx
+
+  TxOutput∙Ctx : HasField (TxOutput ctx) ≫ScriptContext
+  TxOutput∙Ctx {ctx = ctx} = ∙ctx= const ctx
+
+  ∃TxOutput∙Ctx : HasField ∃TxOutput ≫ScriptContext
+  ∃TxOutput∙Ctx = ∙ctx= λ (_ , txo) → txo ∙ctx
+
+  TxInput′∙Ctx : HasField TxInput′ ≫ScriptContext
+  TxInput′∙Ctx = ∙ctx= λ ((_ , _ , T) at o) → (T ‼ᵒ o) ∙ctx
+
+-- Validator accessor.
+
+_∙validator : ∀ {A : Type} ⦃ _ : HasField A ≫ScriptContext ⦄
+            → ⦃ HasField′ A _ ⦄
+            → ∀ (a : A) → BitcoinScript (a ∙ctx)
+_∙validator = _∙
+
+instance
+  TxOutput∙Validator : HasField (TxOutput ctx) (BitcoinScript ctx)
+  TxOutput∙Validator ._∙ = validator
+
+  ∃TxOutput∙Validator : HasField′ ∃TxOutput (BitcoinScript ∘ _∙ctx)
+  ∃TxOutput∙Validator ._∙ (_ , txo) = txo ∙validator
+
+  TxInput′∙Validator : HasField′ TxInput′ (BitcoinScript ∘ _∙ctx)
+  TxInput′∙Validator ._∙ ((_ , _ , T) at o) = (T ‼ᵒ o) ∙validator
