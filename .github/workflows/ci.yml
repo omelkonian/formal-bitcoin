@@ -11,7 +11,7 @@ jobs:
         with:
           agda-version: 2.6.3
           stdlib-version: 1.7.2
-          libraries: omelkonian/formal-prelude#24f03e2
+          libraries: omelkonian/formal-prelude#d59bbfc
           main: Bitcoin/Main
           token: ${{ secrets.GITHUB_TOKEN }}
           measure-typechecking: true
