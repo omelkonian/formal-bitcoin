@@ -31,3 +31,7 @@ record Date : Type where
 infix 10 date∶_
 date∶_ : Date → Time
 date∶ d / m / y = if y <ᵇ 1970 then 0 else (y ∸ 1970) years + m months + d days
+
+-- ** Bitcoin amounts in satoshi.
+_𝐁 : Op₁ Value
+_𝐁 = _* 100000000

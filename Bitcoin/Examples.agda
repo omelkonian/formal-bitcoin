@@ -30,9 +30,9 @@ T₁ = record
   { inputs  = []
   ; wit     = []
   ; relLock = []
-  ; outputs = [ (1 , 3 locked-by ƛ versig [ k₁ ] [ 0F ])
-              ⨾ (1 , 5 locked-by ƛ versig [ k₂ ] [ 0F ])
-              ⨾ (1 , 7 locked-by ƛ versig [ k₃ ] [ 0F ])
+  ; outputs = [ (1 , 3 𝐁 locked-by ƛ versig [ k₁ ] [ 0F ])
+              ⨾ (1 , 5 𝐁 locked-by ƛ versig [ k₂ ] [ 0F ])
+              ⨾ (1 , 7 𝐁 locked-by ƛ versig [ k₃ ] [ 0F ])
               ]
   ; absLock = 0 }
 
@@ -41,7 +41,7 @@ T₂ = sig⋆ [ [ k₂ ] ⨾ [ k₃ ] ] record
   { inputs  = [ (T₁ ♯) at 1 ⨾ (T₁ ♯) at 2 ]
   ; wit     = wit⊥
   ; relLock = [ 0           ⨾ 0           ]
-  ; outputs = [ 1 , 10 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+  ; outputs = [ 1 , 10 𝐁 locked-by ƛ versig [ k₂ ] [ 0F ] ]
   ; absLock = t₂ }
 
 T₃ : Tx 1 1
@@ -49,7 +49,7 @@ T₃ = sig⋆ [ [ k₂ ] ] record
   { inputs  = [ (T₁ ♯) at 1 ]
   ; wit     = wit⊥
   ; relLock = [ 0 ]
-  ; outputs = [ 1 , 5 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+  ; outputs = [ 1 , 5 𝐁 locked-by ƛ versig [ k₂ ] [ 0F ] ]
   ; absLock = t₃ }
 
 B : Blockchain
@@ -106,7 +106,7 @@ _ = record
         ; satisfiesAbsLock = ≤-refl
         ; satisfiesRelLock = z≤n , z≤n
         }
-  ; valuesPreserved = m≤m+n _ 2
+  ; valuesPreserved = m≤m+n _ (2 𝐁)
   ; laterTime = z≤n
   }
 
