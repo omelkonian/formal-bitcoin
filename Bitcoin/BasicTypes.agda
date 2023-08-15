@@ -24,6 +24,10 @@ _days    = _hours   ∘ (_* 24)
 _months  = _days    ∘ (_* 30)
 _years   = _months  ∘ (_* 12)
 
+open Nat
+_days≤ : ∀ n {m} → (m + n days ≥ m)
+n days≤ = m≤m+n _ (n days)
+
 record Date : Type where
   constructor _/_/_
   field day month year : ℕ

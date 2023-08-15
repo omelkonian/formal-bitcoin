@@ -14,9 +14,11 @@ open import Prelude.Sets
 open import Prelude.Setoid
 open import Prelude.Decidable
 open import Prelude.FromList
+open import Prelude.Num
 
-open import Bitcoin.Crypto
 open import Bitcoin.BasicTypes
+  hiding (_𝐁); private _𝐁 = id -- ** for fast evaluation
+open import Bitcoin.Crypto
 open import Bitcoin.Script
 open import Bitcoin.Tx
 open import Bitcoin.Consistency
@@ -30,9 +32,9 @@ T₁ = record
   { inputs  = []
   ; wit     = []
   ; relLock = []
-  ; outputs = [ (1 , 3 𝐁 locked-by ƛ versig [ k₁ ] [ 0F ])
-              ⨾ (1 , 5 𝐁 locked-by ƛ versig [ k₂ ] [ 0F ])
-              ⨾ (1 , 7 𝐁 locked-by ƛ versig [ k₃ ] [ 0F ])
+  ; outputs = [ 3 𝐁 redeemable-by k₁
+              ⨾ 5 𝐁 redeemable-by k₂
+              ⨾ 7 𝐁 redeemable-by k₃
               ]
   ; absLock = 0 }
 
@@ -41,7 +43,7 @@ T₂ = sig⋆ [ [ k₂ ] ⨾ [ k₃ ] ] record
   { inputs  = [ (T₁ ♯) at 1 ⨾ (T₁ ♯) at 2 ]
   ; wit     = wit⊥
   ; relLock = [ 0           ⨾ 0           ]
-  ; outputs = [ 1 , 10 𝐁 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+  ; outputs = [ 10 𝐁 redeemable-by k₂ ]
   ; absLock = t₂ }
 
 T₃ : Tx 1 1
@@ -49,7 +51,7 @@ T₃ = sig⋆ [ [ k₂ ] ] record
   { inputs  = [ (T₁ ♯) at 1 ]
   ; wit     = wit⊥
   ; relLock = [ 0 ]
-  ; outputs = [ 1 , 5 𝐁 locked-by ƛ versig [ k₂ ] [ 0F ] ]
+  ; outputs = [ 5 𝐁 redeemable-by k₂ ]
   ; absLock = t₃ }
 
 B : Blockchain
@@ -94,14 +96,14 @@ _ = record
   ; inputsRedeemable = λ where
       0F → record
         { input~output = refl
-        ; scriptValidates = ver⋆sig≡ T₂ 0F
+        ; scriptValidates = ver⋆sig≡ T₂ 0
         ; value≡ = refl
         ; satisfiesAbsLock = ≤-refl
         ; satisfiesRelLock = z≤n , z≤n
         }
       1F → record
         { input~output = refl
-        ; scriptValidates = ver⋆sig≡ T₂ 1F
+        ; scriptValidates = ver⋆sig≡ T₂ 1
         ; value≡ = refl
         ; satisfiesAbsLock = ≤-refl
         ; satisfiesRelLock = z≤n , z≤n
@@ -111,4 +113,4 @@ _ = record
   }
 
 _ : ¬ (B ▷ T₃ , t₃)
-_ = λ where record {inputs∈UTXO = p} → contradict (p 0F)
+_ = λ where record {inputs∈UTXO = p} → contradict (p 0)

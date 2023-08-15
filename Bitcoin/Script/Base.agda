@@ -6,6 +6,7 @@ module Bitcoin.Script.Base where
 open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.Ord
+open import Prelude.Num
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -53,10 +54,10 @@ unquoteDecl DecEqˢ = DERIVE DecEq [ quote Script , DecEqˢ ]
 
 -- smart constructors
 `false : Script ctx `Bool
-`false = ` (+ 1) `= ` (+ 0)
+`false = ` 1 `= ` 0
 
 `true : Script ctx `Bool
-`true = ` (+ 1) `= ` (+ 1)
+`true = ` 1 `= ` 1
 
 _`∧_ : Script ctx `Bool → Script ctx `Bool → Script ctx `Bool
 e `∧ e′ = `if e then e′ else `false
@@ -77,7 +78,7 @@ infixr 13 _`∨_ _`∧_
 infix  11 ƛ_
 
 _ : BitcoinScript 2
-_ = ƛ versig [] [ 0F ] `∧ hash (var 1F) `= hash (var 0F)
+_ = ƛ versig [] [ 0 ] `∧ hash (var 1) `= hash (var 0)
 
 -- Combining scripts
 mapFin : ∀ {n m} → n ≤ m → Script n ty → Script m ty

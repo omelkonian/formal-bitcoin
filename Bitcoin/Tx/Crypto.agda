@@ -9,7 +9,7 @@ open import Prelude.General
 open import Prelude.Functor
 open import Prelude.ToN
 open import Prelude.FromList
-open import Prelude.Bitstring
+open import Prelude.Num
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -23,6 +23,11 @@ tx ♯at j = (tx ♯) at toℕ j
 hashTxⁱ : TxInput′ → TxInput
 hashTxⁱ ((_ , _ , tx) at j) = tx ♯at j
 
+-- Constructing transaction outputs
+infix 5 _redeemable-by_
+_redeemable-by_ : Value → KeyPair → ∃TxOutput
+v redeemable-by k = 1 , v locked-by ƛ versig [ k ] [ 0 ]
+
 -- Remove witnesses (i.e. adhere to SegregatedWitness feature of Bitcoin)
 wit⊥ : Vec ∃Witness n
 wit⊥ = replicate (-, [])
@@ -32,7 +37,7 @@ wit→⊥ tx = record tx { wit = wit⊥ }
 
 -- Transaction signatures
 μ : Tx i o → Fin i → Tx i o
-μ {i = suc _} tx j = record tx { wit = wit⊥ [ 0F ]≔ (-, [ + (toℕ j) ]) }
+μ {i = suc _} tx j = record tx { wit = wit⊥ [ 0 ]≔ (-, [ + (toℕ j) ]) }
 
 sig : List KeyPair → Tx i o → Fin i → Tx i o
 sig ks tx j = record tx
@@ -60,8 +65,8 @@ module Example1
   (kᶜ≢kᵇ : kᶜ ≢ kᵇ) (kᶜ≢kᵃ : kᶜ ≢ kᵃ) (kᵇ≢kᵃ : kᵇ ≢ kᵃ)
   (t : Tx (suc i) o)
   where
-  σp = SIG kᵃ (μ t 0F)
-  σq = SIG kᵇ (μ t 0F)
+  σp = SIG kᵃ (μ t 0)
+  σq = SIG kᵇ (μ t 0)
 
   ks  = List KeyPair ∋ [ kᶜ ⨾ kᵇ ⨾ kᵃ ]
   σs  = List HashId  ∋ [ σq ⨾ σp ]
@@ -71,59 +76,59 @@ module Example1
 
   open ≡-Reasoning
 
-  _ : T (ver⋆ ks σs t 0F)
+  _ : T (ver⋆ ks σs t 0)
   _ = true⇒T
     $ begin
-        ver⋆ ks σs t 0F
+        ver⋆ ks σs t 0
       ≡⟨⟩
-        (if VER kᶜ σq (μ t 0F) then
-          ver⋆ [ kᵇ ⨾ kᵃ ] [ σp ] t 0F
+        (if VER kᶜ σq (μ t 0) then
+          ver⋆ [ kᵇ ⨾ kᵃ ] [ σp ] t 0
         else
-          ver⋆ [ kᵇ ⨾ kᵃ ] [ σq ⨾ σp ] t 0F)
+          ver⋆ [ kᵇ ⨾ kᵃ ] [ σq ⨾ σp ] t 0)
       ≡⟨ if-false $ ¬T⇒false $ VERSIG≢ kᶜ≢kᵇ ⟩
-        ver⋆ [ kᵇ ⨾ kᵃ ] σs t 0F
+        ver⋆ [ kᵇ ⨾ kᵃ ] σs t 0
       ≡⟨⟩
-        (if VER kᵇ σq (μ t 0F) then
-          ver⋆ [ kᵃ ] [ σp ] t 0F
+        (if VER kᵇ σq (μ t 0) then
+          ver⋆ [ kᵃ ] [ σp ] t 0
         else
-          ver⋆ [ kᵃ ] [ σq ⨾ σp ] t 0F)
+          ver⋆ [ kᵃ ] [ σq ⨾ σp ] t 0)
       ≡⟨ if-true $ T⇒true VERSIG≡ ⟩
-        ver⋆ [ kᵃ ] [ σp ] t 0F
+        ver⋆ [ kᵃ ] [ σp ] t 0
       ≡⟨⟩
-        (if VER kᵃ σp (μ t 0F) then
-          ver⋆ [] [] t 0F
+        (if VER kᵃ σp (μ t 0) then
+          ver⋆ [] [] t 0
         else
-          ver⋆ [] [ σp ] t 0F)
+          ver⋆ [] [ σp ] t 0)
       ≡⟨ if-true $ T⇒true VERSIG≡ ⟩
-        ver⋆ [] [] t 0F
+        ver⋆ [] [] t 0
       ≡⟨⟩
         true
       ∎
 
-  _ : ¬ T (ver⋆ ks σs′ t 0F)
+  _ : ¬ T (ver⋆ ks σs′ t 0)
   _ = false⇒¬T
     $ begin
-        ver⋆ ks σs′ t 0F
+        ver⋆ ks σs′ t 0
       ≡⟨ if-false $ ¬T⇒false $ VERSIG≢ kᶜ≢kᵃ ⟩
-        ver⋆ [ kᵇ ⨾ kᵃ ] [ σp ⨾ σq ] t 0F
+        ver⋆ [ kᵇ ⨾ kᵃ ] [ σp ⨾ σq ] t 0
       ≡⟨ if-false $ ¬T⇒false $ VERSIG≢ kᵇ≢kᵃ ⟩
-        ver⋆ [ kᵃ ] [ σp ⨾ σq ] t 0F
+        ver⋆ [ kᵃ ] [ σp ⨾ σq ] t 0
       ≡⟨ if-true $ T⇒true VERSIG≡ ⟩
-        ver⋆ [] [ σq ] t 0F
+        ver⋆ [] [ σq ] t 0
       ≡⟨⟩
         false
       ∎
 
   -- ** using `rewrite`
 
-  _ : T (ver⋆ ks σs t 0F)
-  _ rewrite ¬T⇒false $ VERSIG≢ {x = μ t 0F} kᶜ≢kᵇ
-          | T⇒true   $ VERSIG≡ {k = kᵇ} {x = μ t 0F}
-          | T⇒true   $ VERSIG≡ {k = kᵃ} {x = μ t 0F}
+  _ : T (ver⋆ ks σs t 0)
+  _ rewrite ¬T⇒false $ VERSIG≢ {x = μ t 0} kᶜ≢kᵇ
+          | T⇒true   $ VERSIG≡ {k = kᵇ} {x = μ t 0}
+          | T⇒true   $ VERSIG≡ {k = kᵃ} {x = μ t 0}
           = tt
 
-  _ : ¬ T (ver⋆ ks σs′ t 0F)
-  _ rewrite ¬T⇒false $ VERSIG≢ {x = μ t 0F} kᶜ≢kᵃ
-          | ¬T⇒false $ VERSIG≢ {x = μ t 0F} kᵇ≢kᵃ
-          | T⇒true   $ VERSIG≡ {k = kᵃ} {x = μ t 0F}
+  _ : ¬ T (ver⋆ ks σs′ t 0)
+  _ rewrite ¬T⇒false $ VERSIG≢ {x = μ t 0} kᶜ≢kᵃ
+          | ¬T⇒false $ VERSIG≢ {x = μ t 0} kᵇ≢kᵃ
+          | T⇒true   $ VERSIG≡ {k = kᵃ} {x = μ t 0}
           = id

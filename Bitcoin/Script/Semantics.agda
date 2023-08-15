@@ -15,6 +15,7 @@ open import Prelude.Functor
 open import Prelude.Applicative
 open import Prelude.FromN
 open import Prelude.InferenceRules
+open import Prelude.Num
 
 open import Bitcoin.BasicTypes
 open import Bitcoin.Crypto
@@ -81,15 +82,15 @@ module Example2
                   ; relLock = rs
                   ; outputs = os
                   ; absLock = t })
-  (σ≡ : σ ≡ SIG k (μ T 0F))
+  (σ≡ : σ ≡ SIG k (μ T 0))
   where
   open import Prelude.General
   open ≡-Reasoning
 
-  _ : T , 0F ⊨ ƛ versig [ k ] [ 0F ] `∧ (hash (var 1F) `= ` h)
-  _ rewrite begin ver⋆ [ k ] [ σ ] T 0F ≡⟨ if-eta _ ⟩
-                  VER k σ _             ≡⟨ cong (λ ◆ → VER _ ◆ _) σ≡ ⟩
-                  VER k (SIG k _) _     ≡⟨ T⇒true VERSIG≡ ⟩
-                  true                  ∎
+  _ : T , 0 ⊨ ƛ versig [ k ] [ 0 ] `∧ (hash (var 1) `= ` h)
+  _ rewrite begin ver⋆ [ k ] [ σ ] T 0 ≡⟨ if-eta _ ⟩
+                  VER k σ _            ≡⟨ cong (λ ◆ → VER _ ◆ _) σ≡ ⟩
+                  VER k (SIG k _) _    ≡⟨ T⇒true VERSIG≡ ⟩
+                  true                 ∎
           | ≟-refl h
           = tt
