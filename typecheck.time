@@ -2,11 +2,11 @@ TOTAL: 0m43s
 Bitcoin/BasicTypes: 0m12s
 Bitcoin/Crypto: 0m4s
 Bitcoin/Script/Base: 0m10s
-Bitcoin/Tx/Base: 0m3s
+Bitcoin/Tx/Base: 0m2s
 Bitcoin/Tx/Crypto: 0m1s
-Bitcoin/Script/Semantics: 0m0s
-Bitcoin/Script: 0m1s
-Bitcoin/Tx/Semantics: 0m1s
+Bitcoin/Script/Semantics: 0m1s
+Bitcoin/Script: 0m0s
+Bitcoin/Tx/Semantics: 0m2s
 Bitcoin/Tx: 0m0s
 Bitcoin/Consistency: 0m3s
 Bitcoin: 0m0s
