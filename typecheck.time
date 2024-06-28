@@ -7,8 +7,8 @@ Bitcoin/Tx/Crypto: 0m1s
 Bitcoin/Script/Semantics: 0m1s
 Bitcoin/Script: 0m0s
 Bitcoin/Tx/Semantics: 0m1s
-Bitcoin/Tx: 0m1s
-Bitcoin/Consistency: 0m2s
+Bitcoin/Tx: 0m0s
+Bitcoin/Consistency: 0m3s
 Bitcoin: 0m0s
 Bitcoin/Examples: 0m2s
 Bitcoin/Main: 0m0s
